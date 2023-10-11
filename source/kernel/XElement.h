@@ -1,5 +1,5 @@
-#ifndef XML_H
-#define XML_H
+#ifndef XELEMENT_H
+#define XELEMENT_H
 
 // standart includes
 #include <memory>
@@ -249,4 +249,4 @@ public:
     virtual ~IXSerializable(){}
 };
 
-#endif // XML_H
+#endif // XELEMENT_H
