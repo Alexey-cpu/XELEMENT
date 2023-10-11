@@ -10,7 +10,7 @@
 using namespace std;
 
 // custom includes
-#include "../Common/utils.h"
+#include "Utils.h"
 using namespace STRING_EXTENSION;
 
 // XML object
