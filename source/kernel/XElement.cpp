@@ -258,14 +258,14 @@ void XElement::parse_element_attributes( XElement* _XElement, string _Input )
     }
 }
 
-bool XElement::to_file( shared_ptr< XElement > _Instance, string _Directory, string _Filename )
+bool XElement::to_file( shared_ptr< XElement > _Instance, string _Directory, string _Filename, string _Extention )
 {
     if(_Instance == nullptr)
         return false;
 
     // open file
     ofstream file;
-    file.open( _Directory + "/" + _Filename + '.' + "xml" );
+    file.open( _Directory + "/" + _Filename + '.' + _Extention );
 
     if( !file )
         return false;
@@ -373,9 +373,9 @@ shared_ptr< XElement > XElement::from_file( string _Path )
     return parse( shared_ptr< ISymbolProvider >( new FileSymbolProvider( _Path ) ) );
 }
 
-shared_ptr< XElement > XElement::from_file( string _Directory, string _Filename )
+shared_ptr< XElement > XElement::from_file( string _Directory, string _Filename, string _Extention )
 {
-    return from_file( _Directory + "/" + _Filename + '.' + "xml" );
+    return from_file( _Directory + "/" + _Filename + '.' + _Extention );
 }
 
 shared_ptr< XElement > XElement::from_string( string _String )

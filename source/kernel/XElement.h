@@ -197,11 +197,11 @@ public:
     // static API
     static shared_ptr< XElement > from_string( string _Path );
 
-    static bool to_file( shared_ptr< XElement > _Instance, string _Directory, string _Filename );
+    static bool to_file( shared_ptr< XElement > _Instance, string _Directory, string _Filename, string _Extention = "xml" );
 
     static shared_ptr< XElement > from_file( string _Path );
 
-    static shared_ptr< XElement > from_file( string _Directory, string _Filename );
+    static shared_ptr< XElement > from_file( string _Directory, string _Filename, string _Extention = "xml" );
 
     static shared_ptr< XElement > Create(
             std::string _Name = std::string(),
