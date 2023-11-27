@@ -119,11 +119,11 @@ protected:
             map< std::string, std::string > _Attributes = map< string, string >() );
 
     // service methods
-    static bool check_symbol( char _Input );
+    static bool check_symbol( char& _Input );
 
-    static string parse_element_name(string _Input);
+    static string parse_element_name(string& _Input);
 
-    static void parse_element_attributes( XElement* _XElement, string _Input );
+    static void parse_element_attributes( XElement* _XElement, string& _Input );
 
     static shared_ptr< XElement > parse( shared_ptr< ISymbolProvider > _SymbolProvider );
 

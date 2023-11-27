@@ -45,7 +45,7 @@ void XElement::add_element( shared_ptr< XElement > _Object )
     if( _Object->m_Parent != nullptr )
     {
         _Object->m_Parent->erase_element( _Object->get_name() );
-        //_Object->m_Parent == nullptr;
+        _Object->m_Parent = nullptr;
     }
 
     // attach object to this XElement
@@ -196,12 +196,12 @@ string XElement::to_string( string _Prefix, string _Postfix ) const
     return output.append( _Prefix + "</" + get_name() + ">" + _Postfix );
 }
 
-bool XElement::check_symbol( char _Input )
+bool XElement::check_symbol( char& _Input )
 {
     return _Input != '<' && _Input != '>' && _Input != '\n' && _Input != '\t';
 }
 
-string XElement::parse_element_name(string _Input)
+string XElement::parse_element_name(string& _Input)
 {
     string name = string();
 
@@ -221,13 +221,18 @@ string XElement::parse_element_name(string _Input)
     return name;
 }
 
-void XElement::parse_element_attributes( XElement* _XElement, string _Input )
+void XElement::parse_element_attributes( XElement* _XElement, string& _Input )
 {
     if( _XElement == nullptr )
         return;
 
-    string attribute = string();
-    int counter = 0;
+    string attribute;
+    string name;
+    string value;
+    name.reserve(256);
+    value.reserve(256);
+    attribute.reserve(256);
+    int counter  = 0;
     bool trigger = false;
 
     for( size_t i = 0 ; i < _Input.size() ; i++ )
@@ -247,14 +252,32 @@ void XElement::parse_element_attributes( XElement* _XElement, string _Input )
             counter++;
         }
 
-        if(counter >= 2)
+        if(counter < 2)
+            continue;
+
+        // get ready to parse attribute
+        size_t j = 0;
+
+        // parse attribute name
+        for( j = 0 ; j < attribute.size() && attribute[j] != '=' ; j++ )
         {
-            auto words = __split__( attribute, "=" );
-            _XElement->add_attribute( __remove_symbol__( words[0], ' ' ), words[1] );
-            attribute.clear();
-            counter = 0;
-            trigger = false;
+            if( attribute[j] != ' ' )
+                name.push_back( attribute[j] );
         }
+
+        // parse attribute value
+        j++;
+        for( ; j < attribute.size() ; j++ )
+            value.push_back( attribute[j] );
+
+        _XElement->add_attribute( name, value );
+
+        // clear
+        name.clear();
+        value.clear();
+        attribute.clear();
+        counter = 0;
+        trigger = false;
     }
 }
 
@@ -316,7 +339,7 @@ shared_ptr< XElement > XElement::parse( shared_ptr< ISymbolProvider > _SymbolPro
             {
                 if( instance != nullptr && instance->get_parent() != nullptr )
                 {
-                    instance = dynamic_cast< XElement* >( instance->get_parent() );
+                    instance = instance->get_parent();
                 }
 
                 trigger = false;
