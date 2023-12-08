@@ -132,9 +132,9 @@ shared_ptr< XElement > XElement::find_element( string _Name ) const
 
 string XElement::find_attribute( string _Name ) const
 {
-    std::string attribute = m_Attributes.find(_Name) == m_Attributes.end() ? std::string() : m_Attributes[ _Name ];
-
-    return STRING_EXTENSION::__remove_symbols__( attribute, { '/', '"' } );
+    return m_Attributes.find(_Name) == m_Attributes.end() ?
+                std::string() :
+                m_Attributes[ _Name ];
 }
 
 size_t XElement::size()
@@ -237,7 +237,7 @@ void XElement::parse_element_attributes( XElement* _XElement, string& _Input )
 
     for( size_t i = 0 ; i < _Input.size() ; i++ )
     {
-        if( trigger && _Input[i] != '<' && _Input[i] != '>' )
+        if( trigger && _Input[i] != '<' && _Input[i] != '>' && _Input[i] != '/' && _Input[i] != '"' )
         {
             attribute += _Input[i];
         }
