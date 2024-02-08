@@ -13,97 +13,97 @@ using namespace std;
 #include "Utils.h"
 using namespace STRING_EXTENSION;
 
+// symbol providers
+class ISymbolProvider
+{
+public:
+
+    // constructors
+    ISymbolProvider(){}
+
+    // virtual destructor
+    virtual ~ISymbolProvider(){}
+
+    virtual char symbol() = 0;
+    virtual bool valid() = 0;
+    virtual bool end() = 0;
+};
+
+class FileSymbolProvider : public ISymbolProvider
+{
+protected:
+
+    ifstream m_File;
+
+public:
+
+    // constructors
+    FileSymbolProvider( string _Path )
+    {
+        m_File.open( _Path );
+    }
+
+    // virtual destructor
+    virtual ~FileSymbolProvider()
+    {
+        m_File.close();
+    }
+
+    // virtual methods override
+    virtual bool valid() override
+    {
+        return m_File.is_open();
+    }
+
+    virtual bool end() override
+    {
+        return m_File.eof();
+    }
+
+    virtual char symbol() override
+    {
+        char output;
+        m_File.get(output);
+        return output;
+    }
+};
+
+class StringSymbolProvider : public ISymbolProvider
+{
+protected:
+
+    const string m_String  = string();
+    size_t       m_Counter = 0;
+
+public:
+
+    // constructors
+    StringSymbolProvider( string _String ) : m_String(_String){}
+
+    // virtual destructor
+    virtual ~StringSymbolProvider(){}
+
+    // virtual methods override
+    virtual bool valid() override
+    {
+        return !m_String.empty();
+    }
+
+    virtual bool end() override
+    {
+        return m_Counter >= m_String.size();
+    }
+
+    virtual char symbol() override
+    {
+        return m_String[m_Counter++];
+    }
+};
+
 // XML object
 class XElement final
 {
 protected:
-
-    // nested types
-    class ISymbolProvider
-    {
-    public:
-
-        // constructors
-        ISymbolProvider(){}
-
-        // virtual destructor
-        virtual ~ISymbolProvider(){}
-
-        virtual char symbol() = 0;
-        virtual bool valid() = 0;
-        virtual bool end() = 0;
-    };
-
-    class FileSymbolProvider : public ISymbolProvider
-    {
-    protected:
-
-        ifstream m_File;
-
-    public:
-
-        // constructors
-        FileSymbolProvider( string _Path )
-        {
-            m_File.open( _Path );
-        }
-
-        // virtual destructor
-        virtual ~FileSymbolProvider()
-        {
-            m_File.close();
-        }
-
-        // virtual methods override
-        virtual bool valid() override
-        {
-            return m_File.is_open();
-        }
-
-        virtual bool end() override
-        {
-            return m_File.eof();
-        }
-
-        virtual char symbol() override
-        {
-            char output;
-            m_File.get(output);
-            return output;
-        }
-    };
-
-    class StringSymbolProvider : public ISymbolProvider
-    {
-    protected:
-
-        const string m_String  = string();
-        size_t m_Counter = 0;
-
-    public:
-
-        // constructors
-        StringSymbolProvider( string _String ) : m_String(_String){}
-
-        // virtual destructor
-        virtual ~StringSymbolProvider(){}
-
-        // virtual methods override
-        virtual bool valid() override
-        {
-            return !m_String.empty();
-        }
-
-        virtual bool end() override
-        {
-            return m_Counter >= m_String.size();
-        }
-
-        virtual char symbol() override
-        {
-            return m_String[m_Counter++];
-        }
-    };
 
     // info
     string                              m_Name   = std::string();
@@ -124,8 +124,6 @@ protected:
     static string parse_element_name(string& _Input);
 
     static void parse_element_attributes( XElement* _XElement, string& _Input );
-
-    static shared_ptr< XElement > parse( shared_ptr< ISymbolProvider > _SymbolProvider );
 
 public:
 
@@ -195,13 +193,21 @@ public:
             std::string _Postfix = std::string() ) const;
 
     // static API
-    static shared_ptr< XElement > from_string( string _Path );
+    static shared_ptr< XElement > read( shared_ptr< ISymbolProvider > _SymbolProvider );
 
-    static bool to_file( shared_ptr< XElement > _Instance, string _Directory, string _Filename, string _Extention = "xml" );
+    static shared_ptr< XElement > from_string( string _Path );
 
     static shared_ptr< XElement > from_file( string _Path );
 
-    static shared_ptr< XElement > from_file( string _Directory, string _Filename, string _Extention = "xml" );
+    static shared_ptr< XElement > from_file(
+            string _Directory,
+            string _Filename,
+            string _Extention = "xml" );
+
+    static bool to_file(
+            shared_ptr< XElement > _Instance,
+            string _Directory, string _Filename,
+            string _Extention = "xml" );
 
     static shared_ptr< XElement > Create(
             std::string _Name = std::string(),
@@ -209,7 +215,7 @@ public:
             map< string, string > _Attributes = map< string, string >() );
 };
 
-// Interface to serialize to XML
+// XML serialization interfaces
 class IXSerializer
 {
 public:

@@ -1,8 +1,5 @@
 #include "XElement.h"
 
-//------------------------------------------------------------------------------------------------------------------------------------------------
-// XELEMENT
-//------------------------------------------------------------------------------------------------------------------------------------------------
 XElement::XElement( std::string _Name, std::string _Value, map< std::string, std::string > _Attributes ) :
     m_Name( _Name ),
     m_Value(_Value),
@@ -157,11 +154,6 @@ typeof( XElement::m_Elements.begin() ) XElement::end()
     return m_Elements.end();
 }
 
-shared_ptr< XElement > XElement::Create( string _Name, string _Value, map< string, string > _Attributes )
-{
-    return shared_ptr< XElement >( new XElement( _Name, _Value, _Attributes ) );
-}
-
 string XElement::to_string( string _Prefix, string _Postfix ) const
 {
     // serialize attributes and value
@@ -281,26 +273,7 @@ void XElement::parse_element_attributes( XElement* _XElement, string& _Input )
     }
 }
 
-bool XElement::to_file( shared_ptr< XElement > _Instance, string _Directory, string _Filename, string _Extention )
-{
-    if(_Instance == nullptr)
-        return false;
-
-    // open file
-    ofstream file;
-    file.open( _Directory + "/" + _Filename + '.' + _Extention );
-
-    if( !file )
-        return false;
-
-    file.clear();
-    file << _Instance->to_string();
-    file.close();
-
-    return true;
-}
-
-shared_ptr< XElement > XElement::parse( shared_ptr< ISymbolProvider > _SymbolProvider )
+shared_ptr< XElement > XElement::read( shared_ptr< ISymbolProvider > _SymbolProvider )
 {
     if( _SymbolProvider == nullptr || !_SymbolProvider->valid() )
         return nullptr;
@@ -393,17 +366,49 @@ shared_ptr< XElement > XElement::parse( shared_ptr< ISymbolProvider > _SymbolPro
 
 shared_ptr< XElement > XElement::from_file( string _Path )
 {
-    return parse( shared_ptr< ISymbolProvider >( new FileSymbolProvider( _Path ) ) );
+    return read( shared_ptr< ISymbolProvider >( new FileSymbolProvider( _Path ) ) );
 }
 
-shared_ptr< XElement > XElement::from_file( string _Directory, string _Filename, string _Extention )
+shared_ptr< XElement > XElement::from_file(
+        string _Directory,
+        string _Filename,
+        string _Extention )
 {
     return from_file( _Directory + "/" + _Filename + '.' + _Extention );
 }
 
 shared_ptr< XElement > XElement::from_string( string _String )
 {
-    return parse( shared_ptr< ISymbolProvider >( new StringSymbolProvider( _String ) ) );
+    return read( shared_ptr< ISymbolProvider >( new StringSymbolProvider( _String ) ) );
 }
 
+bool XElement::to_file(
+        shared_ptr< XElement > _Instance,
+        string _Directory,
+        string _Filename,
+        string _Extention )
+{
+    if(_Instance == nullptr)
+        return false;
 
+    // open file
+    ofstream file;
+    file.open( _Directory + "/" + _Filename + '.' + _Extention );
+
+    if( !file )
+        return false;
+
+    file.clear();
+    file << _Instance->to_string();
+    file.close();
+
+    return true;
+}
+
+shared_ptr< XElement > XElement::Create(
+        string _Name,
+        string _Value,
+        map< string, string > _Attributes )
+{
+    return shared_ptr< XElement >( new XElement( _Name, _Value, _Attributes ) );
+}
