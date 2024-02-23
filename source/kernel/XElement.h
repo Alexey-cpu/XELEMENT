@@ -215,36 +215,8 @@ public:
             map< string, string > _Attributes = map< string, string >() );
 };
 
-// XML serialization interfaces
-class IXSerializer
-{
-public:
-
-    // constructors
-    IXSerializer(){}
-
-    // virtual destructor
-    virtual ~IXSerializer(){}
-
-    // virtual methods
-    virtual shared_ptr<XElement> serialize() = 0;
-};
-
-class IXDeserializer
-{
-public:
-
-    // constructors
-    IXDeserializer(){}
-
-    // virtual destructor
-    virtual ~IXDeserializer(){}
-
-    // virtual methods
-    virtual bool deserialize( shared_ptr<XElement> _Element ) = 0;
-};
-
-class IXSerializable : public IXSerializer, public IXDeserializer
+// XML serialization interface
+class IXSerializable
 {
 public:
 
@@ -253,6 +225,9 @@ public:
 
     // virtual destructor
     virtual ~IXSerializable(){}
+
+    virtual shared_ptr<XElement> serialize() = 0;
+    virtual bool deserialize( shared_ptr<XElement> _Element ) = 0;
 };
 
 #endif // XELEMENT_H
