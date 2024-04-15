@@ -1,6 +1,6 @@
 #include "XElement.h"
 
-XElement::XElement( std::string _Name, std::string _Value, map< std::string, std::string > _Attributes ) :
+XElement::XElement( std::string _Name, std::string _Value, std::map< std::string, std::string > _Attributes ) :
     m_Name( _Name ),
     m_Value(_Value),
     m_Attributes(_Attributes){}
@@ -9,7 +9,7 @@ XElement::~XElement()
 {
     for( auto i = m_Elements.begin() ; i != m_Elements.end() ; i++ )
     {
-        shared_ptr<XElement> child = dynamic_pointer_cast<XElement>( *i );
+        std::shared_ptr<XElement> child = std::dynamic_pointer_cast<XElement>( *i );
 
         if( child != nullptr )
             child->m_Parent = nullptr;
@@ -33,7 +33,7 @@ void XElement::set_name( std::string _Name )
     m_Name = _Name;
 }
 
-void XElement::add_element( shared_ptr< XElement > _Object )
+void XElement::add_element( std::shared_ptr< XElement > _Object )
 {
     if( _Object == nullptr || _Object.get() == this )
         return;
@@ -50,7 +50,7 @@ void XElement::add_element( shared_ptr< XElement > _Object )
     m_Elements.push_back( _Object );
 }
 
-void XElement::erase_element( std::function< bool(shared_ptr< XElement >) > _Predicate )
+void XElement::erase_element( std::function< bool( std::shared_ptr< XElement >) > _Predicate )
 {
     if( _Predicate == nullptr )
         return;
@@ -70,23 +70,23 @@ void XElement::erase_element( std::function< bool(shared_ptr< XElement >) > _Pre
     m_Elements.erase(iterator);
 }
 
-void XElement::erase_element( string _Name )
+void XElement::erase_element( std::string _Name )
 {
     this->erase_element
             (
-                [&_Name](shared_ptr< XElement > _Element)
+                [&_Name]( std::shared_ptr< XElement > _Element)
                 {
                     return _Element != nullptr && _Element->get_name() == _Name;
                 }
             );
 }
 
-void XElement::add_attribute( string _Name, string _Value )
+void XElement::add_attribute( std::string _Name, std::string _Value )
 {
     m_Attributes[_Name] = _Value;
 }
 
-void XElement::erase_attribute(string _Name)
+void XElement::erase_attribute( std::string _Name )
 {
     if( m_Attributes.find(_Name) == m_Attributes.end() )
         return;
@@ -99,7 +99,7 @@ void XElement::clear()
     m_Elements.clear();
 }
 
-shared_ptr< XElement > XElement::find_element( std::function< bool(shared_ptr< XElement >) > _Predicate ) const
+std::shared_ptr< XElement > XElement::find_element( std::function< bool( std::shared_ptr< XElement >) > _Predicate ) const
 {
     if( _Predicate == nullptr )
         return nullptr;
@@ -112,22 +112,22 @@ shared_ptr< XElement > XElement::find_element( std::function< bool(shared_ptr< X
                 _Predicate
             );
 
-    return iterator != m_Elements.end() ? dynamic_pointer_cast<XElement>( *iterator ) : nullptr;
+    return iterator != m_Elements.end() ? std::dynamic_pointer_cast<XElement>( *iterator ) : nullptr;
 }
 
-shared_ptr< XElement > XElement::find_element( string _Name ) const
+std::shared_ptr< XElement > XElement::find_element( std::string _Name ) const
 {
     return
     this->find_element
             (
-                [&_Name](shared_ptr< XElement > _Element)
+                [&_Name]( std::shared_ptr< XElement > _Element)
                 {
                     return _Element != nullptr && _Element->get_name() == _Name;
                 }
             );
 }
 
-string XElement::find_attribute( string _Name ) const
+std::string XElement::find_attribute( std::string _Name ) const
 {
     return m_Attributes.find(_Name) == m_Attributes.end() ?
                 std::string() :
@@ -154,14 +154,14 @@ typeof( XElement::m_Elements.begin() ) XElement::end()
     return m_Elements.end();
 }
 
-string XElement::to_string( string _Prefix, string _Postfix ) const
+std::string XElement::to_string( std::string _Prefix, std::string _Postfix ) const
 {
     // serialize attributes and value
-    string output = _Prefix + "<" + get_name();
+    std::string output = _Prefix + "<" + get_name();
 
     for( auto i = m_Attributes.begin() ; i != m_Attributes.end() ; i++ )
     {
-        string name = ( i->second[0] == '"' && i->second[ i->second.size()-1 ] == '"' ) ? i->second : "\"" + i->second + "\"";
+        std::string name = ( i->second[0] == '"' && i->second[ i->second.size()-1 ] == '"' ) ? i->second : "\"" + i->second + "\"";
         output.append( " " + i->first + "=" + name + ( i == prev(m_Attributes.end()) ? "" : " " ) );
     }
 
@@ -177,7 +177,7 @@ string XElement::to_string( string _Prefix, string _Postfix ) const
 
     for( auto i = m_Elements.begin() ; i != m_Elements.end() ; i++ )
     {
-        shared_ptr< XElement > type = dynamic_pointer_cast<XElement>( *i );
+        std::shared_ptr< XElement > type = std::dynamic_pointer_cast<XElement>( *i );
 
         if( !type.get() )
             continue;
@@ -193,9 +193,9 @@ bool XElement::check_symbol( char& _Input )
     return _Input != '<' && _Input != '>' && _Input != '\n' && _Input != '\t';
 }
 
-string XElement::parse_element_name(string& _Input)
+std::string XElement::parse_element_name( std::string& _Input )
 {
-    string name = string();
+    std::string name = std::string();
 
     for( size_t i = 0 ; i < _Input.size() ; i++ )
     {
@@ -213,14 +213,14 @@ string XElement::parse_element_name(string& _Input)
     return name;
 }
 
-void XElement::parse_element_attributes( XElement* _XElement, string& _Input )
+void XElement::parse_element_attributes( XElement* _XElement, std::string& _Input )
 {
     if( _XElement == nullptr )
         return;
 
-    string attribute;
-    string name;
-    string value;
+    std::string attribute;
+    std::string name;
+    std::string value;
     name.reserve(256);
     value.reserve(256);
     attribute.reserve(256);
@@ -273,20 +273,20 @@ void XElement::parse_element_attributes( XElement* _XElement, string& _Input )
     }
 }
 
-shared_ptr< XElement > XElement::read( shared_ptr< ISymbolProvider > _SymbolProvider )
+std::shared_ptr< XElement > XElement::read( std::shared_ptr< ISymbolProvider > _SymbolProvider )
 {
     if( _SymbolProvider == nullptr || !_SymbolProvider->valid() )
         return nullptr;
 
     // auxiliary variables
     char   input;
-    string name               = string();
-    string tag                = string();
-    string value              = string();
-    int counter               = 0;
-    bool trigger              = false;
-    shared_ptr<XElement> root = XElement::Create( string() );
-    XElement* instance        = nullptr;
+    std::string name               = std::string();
+    std::string tag                = std::string();
+    std::string value              = std::string();
+    int counter                    = 0;
+    bool trigger                   = false;
+    std::shared_ptr<XElement> root = XElement::Create( std::string() );
+    XElement* instance             = nullptr;
 
     // read file
     while ( true )
@@ -333,7 +333,7 @@ shared_ptr< XElement > XElement::read( shared_ptr< ISymbolProvider > _SymbolProv
                 }
                 else
                 {
-                    shared_ptr< XElement > xelement = XElement::Create( name, value );
+                    std::shared_ptr< XElement > xelement = XElement::Create( name, value );
                     instance->add_element( xelement );
                     instance = xelement.get();
 
@@ -341,8 +341,8 @@ shared_ptr< XElement > XElement::read( shared_ptr< ISymbolProvider > _SymbolProv
                 }
             }
 
-            tag   = string();
-            value = string();
+            tag   = std::string();
+            value = std::string();
         }
 
         if( input == '/' )
@@ -364,35 +364,35 @@ shared_ptr< XElement > XElement::read( shared_ptr< ISymbolProvider > _SymbolProv
     return root;
 }
 
-shared_ptr< XElement > XElement::from_file( string _Path )
+std::shared_ptr< XElement > XElement::from_file( std::string _Path )
 {
-    return read( shared_ptr< ISymbolProvider >( new FileSymbolProvider( _Path ) ) );
+    return read( std::shared_ptr< ISymbolProvider >( new FileSymbolProvider( _Path ) ) );
 }
 
-shared_ptr< XElement > XElement::from_file(
-        string _Directory,
-        string _Filename,
-        string _Extention )
+std::shared_ptr< XElement > XElement::from_file(
+        std::string _Directory,
+        std::string _Filename,
+        std::string _Extention )
 {
     return from_file( _Directory + "/" + _Filename + '.' + _Extention );
 }
 
-shared_ptr< XElement > XElement::from_string( string _String )
+std::shared_ptr< XElement > XElement::from_string( std::string _String )
 {
-    return read( shared_ptr< ISymbolProvider >( new StringSymbolProvider( _String ) ) );
+    return read( std::shared_ptr< ISymbolProvider >( new StringSymbolProvider( _String ) ) );
 }
 
 bool XElement::to_file(
-        shared_ptr< XElement > _Instance,
-        string _Directory,
-        string _Filename,
-        string _Extention )
+        std::shared_ptr< XElement > _Instance,
+        std::string _Directory,
+        std::string _Filename,
+        std::string _Extention )
 {
     if(_Instance == nullptr)
         return false;
 
     // open file
-    ofstream file;
+    std::ofstream file;
     file.open( _Directory + "/" + _Filename + '.' + _Extention );
 
     if( !file )
@@ -405,10 +405,10 @@ bool XElement::to_file(
     return true;
 }
 
-shared_ptr< XElement > XElement::Create(
-        string _Name,
-        string _Value,
-        map< string, string > _Attributes )
+std::shared_ptr< XElement > XElement::Create(
+        std::string _Name,
+        std::string _Value,
+        std::map< std::string, std::string > _Attributes )
 {
-    return shared_ptr< XElement >( new XElement( _Name, _Value, _Attributes ) );
+    return std::shared_ptr< XElement >( new XElement( _Name, _Value, _Attributes ) );
 }
