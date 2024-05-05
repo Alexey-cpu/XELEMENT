@@ -9,10 +9,14 @@ XElement::~XElement()
 {
     for( auto i = m_Elements.begin() ; i != m_Elements.end() ; i++ )
     {
-        std::shared_ptr<XElement> child = std::dynamic_pointer_cast<XElement>( *i );
+        std::shared_ptr<XElement> child =
+                std::dynamic_pointer_cast<XElement>( *i );
 
+        // don't forget to detach child from it's parent !!!
         if( child != nullptr )
+        {
             child->m_Parent = nullptr;
+        }
     }
 
     m_Elements.clear();
@@ -283,20 +287,24 @@ std::shared_ptr< XElement > XElement::read( std::shared_ptr< ISymbolProvider > _
     std::string name               = std::string();
     std::string tag                = std::string();
     std::string value              = std::string();
-    int counter                    = 0;
+    int  counter                   = 0;
     bool trigger                   = false;
+    bool prolog                    = false;
     std::shared_ptr<XElement> root = XElement::Create( STRINGIFY( XElement ) );
     XElement* instance             = nullptr;
 
-    // read file
+    // read content
     while ( true )
     {
         input = _SymbolProvider->symbol();
 
         if( _SymbolProvider->end() )
+        {
             break;
+        }
 
-        if( input == '<' ) // start parsing tag
+        // start parsing tag
+        if( input == '<' )
         {
             counter++;
 
@@ -306,9 +314,20 @@ std::shared_ptr< XElement > XElement::read( std::shared_ptr< ISymbolProvider > _
             }
         }
 
-        if( input == '>' ) // start parsing value
+        // start parsing value
+        if( input == '>' )
         {
             counter--;
+
+            // clean control variables and skip prolog
+            if( prolog )
+            {
+                trigger = false;
+                prolog  = false;
+                tag     = std::string();
+                value   = std::string();
+                continue;
+            }
 
             if( trigger == true )
             {
@@ -321,6 +340,7 @@ std::shared_ptr< XElement > XElement::read( std::shared_ptr< ISymbolProvider > _
                     {
                         if( name != instance->get_name() )
                         {
+                            // create instance
                             std::shared_ptr< XElement > xelement = XElement::Create( name, value );
                             instance->add_element( xelement );
 
@@ -375,6 +395,12 @@ std::shared_ptr< XElement > XElement::read( std::shared_ptr< ISymbolProvider > _
             value = std::string();
         }
 
+        // detect prolog
+        if( input == '?' )
+        {
+            prolog = true;
+        }
+
         if( input == '/' )
         {
             trigger = true;
@@ -416,7 +442,8 @@ bool XElement::to_file(
         std::shared_ptr< XElement > _Instance,
         std::string _Directory,
         std::string _Filename,
-        std::string _Extention )
+        std::string _Extention,
+        std::string _Prolog )
 {
     if(_Instance == nullptr)
         return false;
@@ -429,6 +456,7 @@ bool XElement::to_file(
         return false;
 
     file.clear();
+    file << _Prolog; // write prolog first !!!
     file << _Instance->to_string();
     file.close();
 

@@ -3,10 +3,10 @@
 
 // standart includes
 #include <memory>
-#include "vector"
-#include "stack"
-#include "queue"
-#include "map"
+#include <vector>
+#include <stack>
+#include <queue>
+#include <map>
 
 // custom includes
 #include "Utils.h"
@@ -105,10 +105,10 @@ class XElement final
 protected:
 
     // info
-    std::string                              m_Name   = std::string();
-    std::string                              m_Value  = std::string();
-    XElement*                                m_Parent = nullptr;
-    std::list< std::shared_ptr< XElement > > m_Elements;
+    std::string                                   m_Name   = std::string();
+    std::string                                   m_Value  = std::string();
+    XElement*                                     m_Parent = nullptr;
+    std::list< std::shared_ptr< XElement > >      m_Elements;
     mutable std::map< std::string, std::string >  m_Attributes;
 
     // constructors
@@ -205,11 +205,13 @@ public:
 
     static bool to_file(
             std::shared_ptr< XElement > _Instance,
-            std::string _Directory, std::string _Filename,
-            std::string _Extention = "xml" );
+            std::string _Directory,
+            std::string _Filename,
+            std::string _Extention = "xml",
+            std::string _Prolog    = "<?xml version=\"1.0\"?>\n<?mso-application progid=\"Excel.Sheet\"?>\n" ); // default prolog is MS Office Excel compatible
 
     static std::shared_ptr< XElement > Create(
-            std::string _Name = std::string(),
+            std::string _Name  = std::string(),
             std::string _Value = std::string(),
             std::map< std::string, std::string > _Attributes = std::map< std::string, std::string >() );
 };
