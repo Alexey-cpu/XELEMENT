@@ -190,7 +190,7 @@ std::string XElement::to_string( std::string _Prefix, std::string _Postfix ) con
 
 bool XElement::check_symbol( char& _Input )
 {
-    return _Input != '<' && _Input != '>' && _Input != '\n' && _Input != '\t';
+    return _Input != '<' && _Input != '>' && _Input != '/' && _Input != '\n' && _Input != '\t';
 }
 
 std::string XElement::parse_element_name( std::string& _Input )
@@ -285,7 +285,7 @@ std::shared_ptr< XElement > XElement::read( std::shared_ptr< ISymbolProvider > _
     std::string value              = std::string();
     int counter                    = 0;
     bool trigger                   = false;
-    std::shared_ptr<XElement> root = XElement::Create( std::string() );
+    std::shared_ptr<XElement> root = XElement::Create( STRINGIFY( XElement ) );
     XElement* instance             = nullptr;
 
     // read file
@@ -300,8 +300,10 @@ std::shared_ptr< XElement > XElement::read( std::shared_ptr< ISymbolProvider > _
         {
             counter++;
 
-            if( instance != nullptr ) // setup value
+            if( instance != nullptr )
+            {
                 instance->set_value( value );
+            }
         }
 
         if( input == '>' ) // start parsing value
@@ -310,9 +312,36 @@ std::shared_ptr< XElement > XElement::read( std::shared_ptr< ISymbolProvider > _
 
             if( trigger == true )
             {
-                if( instance != nullptr && instance->get_parent() != nullptr )
+                // parse tag
+                name = parse_element_name( tag );
+
+                if( instance != nullptr )
                 {
-                    instance = instance->get_parent();
+                    if( instance->get_parent() != nullptr )
+                    {
+                        if( name != instance->get_name() )
+                        {
+                            std::shared_ptr< XElement > xelement = XElement::Create( name, value );
+                            instance->add_element( xelement );
+
+                            // parse instance element attribute
+                            parse_element_attributes( xelement.get(), tag );
+                        }
+                        else
+                        {
+                            instance = instance->get_parent();
+                        }
+                    }
+                }
+                else
+                {
+                    // create instance and add it to the root
+                    std::shared_ptr< XElement > xelement = XElement::Create( name, value );
+                    root->add_element( xelement );
+                    instance = xelement.get();
+
+                    // parse instance element attribute
+                    parse_element_attributes( instance, tag );
                 }
 
                 trigger = false;
@@ -325,9 +354,10 @@ std::shared_ptr< XElement > XElement::read( std::shared_ptr< ISymbolProvider > _
                 // process instance
                 if( instance == nullptr )
                 {
-                    instance = root.get();
-                    instance->set_name( name );
-                    instance->set_value( value );
+                    // create instance
+                    std::shared_ptr< XElement > xelement = XElement::Create( name, value );
+                    root->add_element( xelement );
+                    instance = xelement.get();
 
                     parse_element_attributes( instance, tag );
                 }
