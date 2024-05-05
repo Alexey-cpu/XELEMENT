@@ -190,7 +190,7 @@ std::string XElement::to_string( std::string _Prefix, std::string _Postfix ) con
 
 bool XElement::check_symbol( char& _Input )
 {
-    return _Input != '<' && _Input != '>' && _Input != '/' && _Input != '\n' && _Input != '\t';
+    return _Input != '<' && _Input != '>' && _Input != '/' && _Input != '?' && _Input != '\n' && _Input != '\t';
 }
 
 std::string XElement::parse_element_name( std::string& _Input )
