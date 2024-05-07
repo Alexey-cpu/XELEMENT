@@ -466,7 +466,16 @@ bool XElement::to_file(
 std::shared_ptr< XElement > XElement::Create(
         std::string _Name,
         std::string _Value,
-        std::map< std::string, std::string > _Attributes )
+        std::map< std::string, std::string > _Attributes,
+        std::shared_ptr<XElement> _Parent )
 {
-    return std::shared_ptr< XElement >( new XElement( _Name, _Value, _Attributes ) );
+    std::shared_ptr< XElement > xelement =
+            std::shared_ptr< XElement >( new XElement( _Name, _Value, _Attributes ) );
+
+    if( _Parent != nullptr )
+    {
+        _Parent->add_element( xelement );
+    }
+
+    return xelement;
 }

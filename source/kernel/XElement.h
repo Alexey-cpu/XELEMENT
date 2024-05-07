@@ -213,7 +213,8 @@ public:
     static std::shared_ptr< XElement > Create(
             std::string _Name  = std::string(),
             std::string _Value = std::string(),
-            std::map< std::string, std::string > _Attributes = std::map< std::string, std::string >() );
+            std::map< std::string, std::string > _Attributes = std::map< std::string, std::string >(),
+            std::shared_ptr< XElement > _Parent = nullptr );
 };
 
 // XML serialization interface
