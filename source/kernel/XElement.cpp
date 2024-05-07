@@ -467,7 +467,8 @@ std::shared_ptr< XElement > XElement::Create(
         std::string _Name,
         std::string _Value,
         std::map< std::string, std::string > _Attributes,
-        std::shared_ptr<XElement> _Parent )
+        std::shared_ptr<XElement> _Parent,
+        std::list< std::shared_ptr< XElement > > _ChildElements )
 {
     std::shared_ptr< XElement > xelement =
             std::shared_ptr< XElement >( new XElement( _Name, _Value, _Attributes ) );
@@ -475,6 +476,17 @@ std::shared_ptr< XElement > XElement::Create(
     if( _Parent != nullptr )
     {
         _Parent->add_element( xelement );
+    }
+
+    for( auto i = _ChildElements.begin() ; i != _ChildElements.end() ; i++ )
+    {
+        std::shared_ptr< XElement > child =
+                std::dynamic_pointer_cast<XElement>( *i );
+
+        if( child != nullptr )
+        {
+            xelement->add_element( child );
+        }
     }
 
     return xelement;
