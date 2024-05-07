@@ -158,7 +158,9 @@ public:
             std::shared_ptr< XElement > xelement = find_element( _Name );
 
             if( xelement != nullptr )
+            {
                 xelement->set_value<__type>( _Value );
+            }
         }
     }
 
