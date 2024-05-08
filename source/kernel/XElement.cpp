@@ -467,8 +467,8 @@ std::shared_ptr< XElement > XElement::Create(
         std::string _Name,
         std::string _Value,
         std::map< std::string, std::string > _Attributes,
-        std::shared_ptr<XElement> _Parent,
-        std::list< std::shared_ptr< XElement > > _ChildElements )
+        std::list< std::shared_ptr< XElement > > _ChildElements,
+        std::shared_ptr<XElement> _Parent )
 {
     std::shared_ptr< XElement > xelement =
             std::shared_ptr< XElement >( new XElement( _Name, _Value, _Attributes ) );
