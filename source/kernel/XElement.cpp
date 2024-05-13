@@ -9,10 +9,14 @@ XElement::~XElement()
 {
     for( auto i = m_Elements.begin() ; i != m_Elements.end() ; i++ )
     {
-        std::shared_ptr<XElement> child = std::dynamic_pointer_cast<XElement>( *i );
+        std::shared_ptr<XElement> child =
+                std::dynamic_pointer_cast<XElement>( *i );
 
+        // don't forget to detach child from it's parent !!!
         if( child != nullptr )
+        {
             child->m_Parent = nullptr;
+        }
     }
 
     m_Elements.clear();
@@ -190,7 +194,7 @@ std::string XElement::to_string( std::string _Prefix, std::string _Postfix ) con
 
 bool XElement::check_symbol( char& _Input )
 {
-    return _Input != '<' && _Input != '>' && _Input != '\n' && _Input != '\t';
+    return _Input != '<' && _Input != '>' && _Input != '/' && _Input != '?' && _Input != '\n' && _Input != '\t';
 }
 
 std::string XElement::parse_element_name( std::string& _Input )
@@ -283,36 +287,81 @@ std::shared_ptr< XElement > XElement::read( std::shared_ptr< ISymbolProvider > _
     std::string name               = std::string();
     std::string tag                = std::string();
     std::string value              = std::string();
-    int counter                    = 0;
+    int  counter                   = 0;
     bool trigger                   = false;
-    std::shared_ptr<XElement> root = XElement::Create( std::string() );
+    bool prolog                    = false;
+    std::shared_ptr<XElement> root = XElement::Create( STRINGIFY( XElement ) );
     XElement* instance             = nullptr;
 
-    // read file
+    // read content
     while ( true )
     {
         input = _SymbolProvider->symbol();
 
         if( _SymbolProvider->end() )
+        {
             break;
+        }
 
-        if( input == '<' ) // start parsing tag
+        // start parsing tag
+        if( input == '<' )
         {
             counter++;
 
-            if( instance != nullptr ) // setup value
+            if( instance != nullptr )
+            {
                 instance->set_value( value );
+            }
         }
 
-        if( input == '>' ) // start parsing value
+        // start parsing value
+        if( input == '>' )
         {
             counter--;
 
+            // clean control variables and skip prolog
+            if( prolog )
+            {
+                trigger = false;
+                prolog  = false;
+                tag     = std::string();
+                value   = std::string();
+                continue;
+            }
+
             if( trigger == true )
             {
-                if( instance != nullptr && instance->get_parent() != nullptr )
+                // parse tag
+                name = parse_element_name( tag );
+
+                if( instance != nullptr )
                 {
-                    instance = instance->get_parent();
+                    if( instance->get_parent() != nullptr )
+                    {
+                        if( name != instance->get_name() )
+                        {
+                            // create instance
+                            std::shared_ptr< XElement > xelement = XElement::Create( name, value );
+                            instance->add_element( xelement );
+
+                            // parse instance element attribute
+                            parse_element_attributes( xelement.get(), tag );
+                        }
+                        else
+                        {
+                            instance = instance->get_parent();
+                        }
+                    }
+                }
+                else
+                {
+                    // create instance and add it to the root
+                    std::shared_ptr< XElement > xelement = XElement::Create( name, value );
+                    root->add_element( xelement );
+                    instance = xelement.get();
+
+                    // parse instance element attribute
+                    parse_element_attributes( instance, tag );
                 }
 
                 trigger = false;
@@ -325,9 +374,10 @@ std::shared_ptr< XElement > XElement::read( std::shared_ptr< ISymbolProvider > _
                 // process instance
                 if( instance == nullptr )
                 {
-                    instance = root.get();
-                    instance->set_name( name );
-                    instance->set_value( value );
+                    // create instance
+                    std::shared_ptr< XElement > xelement = XElement::Create( name, value );
+                    root->add_element( xelement );
+                    instance = xelement.get();
 
                     parse_element_attributes( instance, tag );
                 }
@@ -343,6 +393,12 @@ std::shared_ptr< XElement > XElement::read( std::shared_ptr< ISymbolProvider > _
 
             tag   = std::string();
             value = std::string();
+        }
+
+        // detect prolog
+        if( input == '?' )
+        {
+            prolog = true;
         }
 
         if( input == '/' )
@@ -361,7 +417,7 @@ std::shared_ptr< XElement > XElement::read( std::shared_ptr< ISymbolProvider > _
         }
     }
 
-    return root;
+    return root->size() > 1 ? root : root->m_Elements.front();
 }
 
 std::shared_ptr< XElement > XElement::from_file( std::string _Path )
@@ -386,7 +442,8 @@ bool XElement::to_file(
         std::shared_ptr< XElement > _Instance,
         std::string _Directory,
         std::string _Filename,
-        std::string _Extention )
+        std::string _Extention,
+        std::string _Prolog )
 {
     if(_Instance == nullptr)
         return false;
@@ -399,6 +456,7 @@ bool XElement::to_file(
         return false;
 
     file.clear();
+    file << _Prolog; // write prolog first !!!
     file << _Instance->to_string();
     file.close();
 
@@ -408,7 +466,28 @@ bool XElement::to_file(
 std::shared_ptr< XElement > XElement::Create(
         std::string _Name,
         std::string _Value,
-        std::map< std::string, std::string > _Attributes )
+        std::map< std::string, std::string > _Attributes,
+        std::list< std::shared_ptr< XElement > > _ChildElements,
+        std::shared_ptr<XElement> _Parent )
 {
-    return std::shared_ptr< XElement >( new XElement( _Name, _Value, _Attributes ) );
+    std::shared_ptr< XElement > xelement =
+            std::shared_ptr< XElement >( new XElement( _Name, _Value, _Attributes ) );
+
+    if( _Parent != nullptr )
+    {
+        _Parent->add_element( xelement );
+    }
+
+    for( auto i = _ChildElements.begin() ; i != _ChildElements.end() ; i++ )
+    {
+        std::shared_ptr< XElement > child =
+                std::dynamic_pointer_cast<XElement>( *i );
+
+        if( child != nullptr )
+        {
+            xelement->add_element( child );
+        }
+    }
+
+    return xelement;
 }
