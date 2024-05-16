@@ -45,7 +45,8 @@ void XElement::XElementTagParser::parse_element_attributes( XElement* _XElement,
 
     for( size_t i = 0 ; i < _Input.size() ; i++ )
     {
-        if( trigger && _Input[i] != '<' && _Input[i] != '>' && _Input[i] != '/' && _Input[i] != '"' )
+        //if( trigger && _Input[i] != '<' && _Input[i] != '>' && _Input[i] != '/' && _Input[i] != '"' )
+        if( trigger && _Input[i] != '<' && _Input[i] != '>' && _Input[i] != '"' )
         {
             m_Attribute += _Input[i];
         }
@@ -290,6 +291,7 @@ bool XElement::check_symbol( char& _Input )
     return _Input != '<' && _Input != '>' && _Input != '/' && _Input != '?' && _Input != '\n' && _Input != '\t';
 }
 
+/*
 std::shared_ptr< XElement > XElement::read( std::shared_ptr< ISymbolProvider > _SymbolProvider )
 {
     if( _SymbolProvider == nullptr || !_SymbolProvider->valid() )
@@ -434,6 +436,121 @@ std::shared_ptr< XElement > XElement::read( std::shared_ptr< ISymbolProvider > _
 
     return root->size() > 1 ? root : root->m_Elements.front();
 }
+*/
+
+std::shared_ptr< XElement > XElement::read( std::shared_ptr< ISymbolProvider > _SymbolProvider )
+{
+    if( _SymbolProvider == nullptr || !_SymbolProvider->valid() )
+        return nullptr;
+
+    // auxiliary variables
+    char input;
+    std::shared_ptr<XElement> root =
+            XElement::Create( STRINGIFY( XElement ) );
+
+    XElement* current = root.get();
+
+    XElementTagParser parser;
+
+    std::string tag;
+    std::string value;
+
+    bool readTag   = false;
+    bool readValue = false;
+
+    // read content
+    while ( true )
+    {
+        input = _SymbolProvider->symbol();
+
+        if( _SymbolProvider->end() )
+        {
+            break;
+        }
+
+        // start read tag
+        if( input == '<' )
+        {
+            if( current != nullptr )
+            {
+                current->set_value( value );
+            }
+
+            // reset control variables
+            readValue = false;
+            readTag   = true;
+            tag       = std::string();
+            value     = std::string();
+        }
+
+        // start read value
+        if( input == '>' )
+        {
+            // read last tag symbol
+            tag += input;
+
+            // parse tag
+            if( tag[0] == '<' && tag[1] == '/' ) // <Data ATTRIBUTE=""></Data>
+            {
+                if( current != nullptr )
+                {
+                    current->set_name( parser.parse_element_name( tag ) );
+                    parser.parse_element_attributes( current, tag );
+                    current = current->get_parent();
+                }
+            }
+            else if ( tag[ tag.size() - 2 ] == '/' && tag[ tag.size() - 1 ] == '>' ) // <Data ATTRIBUTE="" />
+            {
+                if( current != nullptr )
+                {
+                    std::shared_ptr<XElement> element =
+                            XElement::Create( STRINGIFY( XElement ) );
+
+                    element->set_name( parser.parse_element_name( tag ) );
+                    parser.parse_element_attributes( element.get(), tag );
+                    current->add_element( element );
+                }
+            }
+            else if( ( tag[0] == '<' && tag[1] == '?' ) &&
+                     ( tag[ tag.size() - 2 ] == '?' && tag[ tag.size() - 1 ] == '>' ) ) // <?xml version="1.0"?>
+            {
+                // TODO: handle prolog here !!!
+            }
+            else
+            {
+                if( current != nullptr )
+                {
+                    std::shared_ptr<XElement> element =
+                            XElement::Create( STRINGIFY( XElement ) );
+
+                    element->set_name( parser.parse_element_name( tag ) );
+                    parser.parse_element_attributes( element.get(), tag );
+                    current->add_element( element );
+                    current = element.get();
+                }
+            }
+
+            // reset control variables
+            readValue = true;
+            readTag   = false;
+            tag       = std::string();
+            value     = std::string();
+        }
+
+        if( readValue && XElement::check_symbol( input ) )
+        {
+            value += input;
+        }
+
+        if( readTag )
+        {
+            tag += input;
+        }
+    }
+
+    return root->size() > 1 ? root : *root->begin();
+}
+
 
 std::shared_ptr< XElement > XElement::from_file( std::string _Path )
 {
