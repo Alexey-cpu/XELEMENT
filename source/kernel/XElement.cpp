@@ -358,7 +358,8 @@ std::shared_ptr< XElement > XElement::read( std::shared_ptr< ISymbolProvider > _
                     current = current->get_parent();
                 }
             }
-            else if ( tag[ tag.size() - 2 ] == '/' && tag[ tag.size() - 1 ] == '>' ) // <Data ATTRIBUTE="" />
+            else if ( tag[ tag.size() - 2 ] == '/' &&
+                      tag[ tag.size() - 1 ] == '>' ) // <Data ATTRIBUTE="" />
             {
                 if( current != nullptr )
                 {
