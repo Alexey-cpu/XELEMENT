@@ -120,9 +120,19 @@ protected:
     // service methods
     static bool check_symbol( char& _Input );
 
-    static std::string parse_element_name(std::string& _Input);
+    // nested types
+    class XElementTagParser
+    {
+        std::string m_Attribute;
+        std::string m_Name;
+        std::string m_Value;
 
-    static void parse_element_attributes( XElement* _XElement, std::string& _Input );
+    public:
+        XElementTagParser();
+        ~XElementTagParser();
+        std::string parse_element_name(std::string& _Input);
+        void parse_element_attributes( XElement* _XElement, std::string& _Input );
+    };
 
 public:
 
