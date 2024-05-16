@@ -291,157 +291,13 @@ bool XElement::check_symbol( char& _Input )
     return _Input != '<' && _Input != '>' && _Input != '/' && _Input != '?' && _Input != '\n' && _Input != '\t';
 }
 
-/*
 std::shared_ptr< XElement > XElement::read( std::shared_ptr< ISymbolProvider > _SymbolProvider )
 {
-    if( _SymbolProvider == nullptr || !_SymbolProvider->valid() )
-        return nullptr;
-
-    // auxiliary variables
-    char   input;
-    std::string name               = std::string();
-    std::string tag                = std::string();
-    std::string value              = std::string();
-    int  counter                   = 0;
-    bool trigger                   = false;
-    bool prolog                    = false;
-    std::shared_ptr<XElement> root = XElement::Create( STRINGIFY( XElement ) );
-    XElement* instance             = nullptr;
-
-    XElementTagParser parser;
-
-    // read content
-    while ( true )
+    if( _SymbolProvider == nullptr ||
+            !_SymbolProvider->valid() )
     {
-        input = _SymbolProvider->symbol();
-
-        if( _SymbolProvider->end() )
-        {
-            break;
-        }
-
-        // start parsing tag
-        if( input == '<' )
-        {
-            counter++;
-
-            if( instance != nullptr )
-            {
-                instance->set_value( value );
-            }
-        }
-
-        // start parsing value
-        if( input == '>' )
-        {
-            counter--;
-
-            // clean control variables and skip prolog
-            if( prolog )
-            {
-                trigger = false;
-                prolog  = false;
-                tag     = std::string();
-                value   = std::string();
-                continue;
-            }
-
-            if( trigger == true )
-            {
-                // parse tag
-                name = parser.parse_element_name( tag );
-
-                if( instance != nullptr )
-                {
-                    if( instance->get_parent() != nullptr )
-                    {
-                        if( name != instance->get_name() )
-                        {
-                            // create instance
-                            std::shared_ptr< XElement > xelement = XElement::Create( name, value );
-                            instance->add_element( xelement );
-
-                            // parse instance element attribute
-                            parser.parse_element_attributes( xelement.get(), tag );
-                        }
-                        else
-                        {
-                            instance = instance->get_parent();
-                        }
-                    }
-                }
-                else
-                {
-                    // create instance and add it to the root
-                    std::shared_ptr< XElement > xelement = XElement::Create( name, value );
-                    root->add_element( xelement );
-                    instance = xelement.get();
-
-                    // parse instance element attribute
-                    parser.parse_element_attributes( instance, tag );
-                }
-
-                trigger = false;
-            }
-            else
-            {
-                // parse tag
-                name = parser.parse_element_name( tag );
-
-                // process instance
-                if( instance == nullptr )
-                {
-                    // create instance
-                    std::shared_ptr< XElement > xelement = XElement::Create( name, value );
-                    root->add_element( xelement );
-                    instance = xelement.get();
-
-                    parser.parse_element_attributes( instance, tag );
-                }
-                else
-                {
-                    std::shared_ptr< XElement > xelement = XElement::Create( name, value );
-                    instance->add_element( xelement );
-                    instance = xelement.get();
-
-                    parser.parse_element_attributes( instance, tag );
-                }
-            }
-
-            tag   = std::string();
-            value = std::string();
-        }
-
-        // detect prolog
-        if( input == '?' )
-        {
-            prolog = true;
-        }
-
-        if( input == '/' )
-        {
-            trigger = true;
-        }
-
-        if( counter > 0 && check_symbol( input ) )
-        {
-            tag += input;
-        }
-
-        if( counter == 0 && check_symbol( input ) )
-        {
-            value += input;
-        }
-    }
-
-    return root->size() > 1 ? root : root->m_Elements.front();
-}
-*/
-
-std::shared_ptr< XElement > XElement::read( std::shared_ptr< ISymbolProvider > _SymbolProvider )
-{
-    if( _SymbolProvider == nullptr || !_SymbolProvider->valid() )
         return nullptr;
+    }
 
     // auxiliary variables
     char input;
@@ -454,7 +310,8 @@ std::shared_ptr< XElement > XElement::read( std::shared_ptr< ISymbolProvider > _
 
     std::string tag;
     std::string value;
-
+    tag.reserve(512);
+    tag.reserve(1024);
     bool readTag   = false;
     bool readValue = false;
 
@@ -473,14 +330,16 @@ std::shared_ptr< XElement > XElement::read( std::shared_ptr< ISymbolProvider > _
         {
             if( current != nullptr )
             {
-                current->set_value( value );
+                if( current->get_value<std::string>() == std::string() )
+                {
+                    current->set_value( value );
+                }
             }
 
             // reset control variables
             readValue = false;
             readTag   = true;
             tag       = std::string();
-            value     = std::string();
         }
 
         // start read value
@@ -533,7 +392,6 @@ std::shared_ptr< XElement > XElement::read( std::shared_ptr< ISymbolProvider > _
             // reset control variables
             readValue = true;
             readTag   = false;
-            tag       = std::string();
             value     = std::string();
         }
 
