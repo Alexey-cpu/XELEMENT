@@ -90,7 +90,10 @@ void XElement::XElementTagParser::parse_element_attributes( XElement* _XElement,
 }
 
 // XElement
-XElement::XElement( std::string _Name, std::string _Value, std::map< std::string, std::string > _Attributes ) :
+XElement::XElement(
+        std::string _Name,
+        std::string _Value,
+        std::map< std::string, std::string > _Attributes ) :
     m_Name( _Name ),
     m_Value(_Value),
     m_Attributes(_Attributes){}

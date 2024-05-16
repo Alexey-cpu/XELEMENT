@@ -136,7 +136,7 @@ protected:
 
 public:
 
-    // virtual destructor
+    // destructor
     ~XElement();
 
     // getters
