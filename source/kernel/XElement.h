@@ -3,9 +3,6 @@
 
 // standart includes
 #include <memory>
-#include <vector>
-#include <stack>
-#include <queue>
 #include <map>
 
 // custom includes
