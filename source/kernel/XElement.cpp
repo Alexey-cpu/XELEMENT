@@ -396,7 +396,7 @@ std::shared_ptr< XElement > XElement::read( std::shared_ptr< ISymbolProvider > _
             value     = std::string();
         }
 
-        if( readValue && XElement::check_symbol( input ) )
+        if( readValue && input != '<' && input != '>' && input != '?' && input != '\n' && input != '\t' )
         {
             value += input;
         }
