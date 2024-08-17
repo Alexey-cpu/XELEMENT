@@ -2,14 +2,12 @@
 #define XELEMENT_H
 
 // standart includes
+#include <functional>
+#include <filesystem>
+#include <string>
 #include <memory>
 #include <map>
 #include <list>
-#include <functional>
-
-#if __cplusplus >= 202002L
-#include <filesystem>
-#endif
 
 // ISymbolProvider
 class ISymbolProvider
