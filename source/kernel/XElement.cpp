@@ -1,5 +1,240 @@
 #include "XElement.h"
-#include "Utils.h"
+#include <iostream>
+#include <sstream>
+#include <fstream>
+
+#ifndef STRINGIFY
+#define STRINGIFY(INPUT) #INPUT
+#endif
+
+#ifndef CONCATENATE
+#define CONCATENATE(X,Y) X##_##Y
+#endif
+
+// __from_string__
+template< typename __type > __type __from_string__( std::string _Input );
+
+template<> inline float __from_string__< float >( std::string _Input )
+{
+    try
+    {
+        return std::stof( _Input );
+    }
+    catch(...)
+    {
+        return 0.0;
+    }
+}
+
+template<> inline double __from_string__<double>( std::string _Input )
+{
+    try
+    {
+        return std::stod( _Input );
+    }
+    catch(...)
+    {
+        return 0.0;
+    }
+}
+
+template<> inline long double __from_string__<long double>( std::string _Input )
+{
+    try
+    {
+        return std::stold( _Input );
+    }
+    catch(...)
+    {
+        return 0.0;
+    }
+}
+
+template<> inline short __from_string__<short>( std::string _Input )
+{
+    try
+    {
+        return std::stoi( _Input );
+    }
+    catch(...)
+    {
+        return 0.0;
+    }
+}
+
+template<> inline int __from_string__<int>( std::string _Input )
+{
+    try
+    {
+        return std::stoi( _Input );
+    }
+    catch(...)
+    {
+        return 0.0;
+    }
+}
+
+template<> inline long __from_string__<long>( std::string _Input )
+{
+    try
+    {
+        return std::stol( _Input );
+    }
+    catch(...)
+    {
+        return 0.0;
+    }
+}
+
+template<> inline long long __from_string__<long long>( std::string _Input )
+{
+    try
+    {
+        return std::stoll( _Input );
+    }
+    catch(...)
+    {
+        return 0.0;
+    }
+}
+
+template<> inline unsigned short __from_string__<unsigned short>( std::string _Input )
+{
+    try
+    {
+        return std::stoul( _Input );
+    }
+    catch(...)
+    {
+        return 0.0;
+    }
+}
+
+template<> inline unsigned int __from_string__<unsigned int>( std::string _Input )
+{
+    try
+    {
+        return std::stoul( _Input );
+    }
+    catch(...)
+    {
+        return 0.0;
+    }
+}
+
+template<> inline unsigned long __from_string__<unsigned long>( std::string _Input )
+{
+    try
+    {
+        return std::stoul( _Input );
+    }
+    catch(...)
+    {
+        return 0.0;
+    }
+}
+
+template<> inline unsigned long long __from_string__<unsigned long long>( std::string _Input )
+{
+    try
+    {
+        return std::stoull( _Input );
+    }
+    catch(...)
+    {
+        return 0.0;
+    }
+}
+
+template<> inline bool __from_string__<bool>( std::string _Input )
+{
+    try
+    {
+        return _Input == "true" || _Input == "1" ? true : false;
+    }
+    catch(...)
+    {
+        return false;
+    }
+}
+
+template<> inline std::string __from_string__< std::string >( std::string _Input )
+{
+    return _Input;
+}
+
+template<> inline char __from_string__<char>( std::string _Input )
+{
+    return _Input.empty() ? ' ' : _Input[0];
+}
+
+// __to_string__
+template< typename __type > std::string __to_string__( __type _Input );
+
+template<> inline std::string __to_string__<bool>( bool _Input )
+{
+    return std::to_string( _Input );
+}
+
+template<> inline std::string __to_string__< float >( float _Input )
+{
+    return std::to_string( _Input );
+}
+
+template<> inline std::string __to_string__<double>( double _Input )
+{
+    return std::to_string( _Input );
+}
+
+template<> inline std::string __to_string__<long double>( long double _Input )
+{
+    return std::to_string( _Input );
+}
+
+template<> inline std::string __to_string__<short>( short _Input )
+{
+    return std::to_string( _Input );
+}
+
+template<> inline std::string __to_string__<int>( int _Input )
+{
+    return std::to_string( _Input );
+}
+
+template<> inline std::string __to_string__<long>( long _Input )
+{
+    return std::to_string( _Input );
+}
+
+template<> inline std::string __to_string__<long long>( long long _Input )
+{
+    return std::to_string( _Input );
+}
+
+template<> inline std::string __to_string__<unsigned short>( unsigned short _Input )
+{
+    return std::to_string( _Input );
+}
+
+template<> inline std::string __to_string__<unsigned int>( unsigned int _Input )
+{
+    return std::to_string( _Input );
+}
+
+template<> inline std::string __to_string__<unsigned long>( unsigned long _Input )
+{
+    return std::to_string( _Input );
+}
+
+template<> inline std::string __to_string__<unsigned long long>( unsigned long long _Input )
+{
+    return std::to_string( _Input );
+}
+
+template<> inline std::string __to_string__< std::string >( std::string _Input )
+{
+    return _Input;
+}
 
 // FileSymbolProvider
 class FileSymbolProvider : public ISymbolProvider
@@ -209,14 +444,14 @@ template< typename __type > __type XElement::get_value( std::string _Name ) cons
 {
     if( _Name == std::string() || _Name == this->get_name() )
     {
-        return STRING_EXTENSION::__from_string__< __type >( m_Value );
+        return __from_string__< __type >( m_Value );
     }
 
     std::shared_ptr< XElement > xelement = find_element( _Name );
 
     return xelement != nullptr ?
-               STRING_EXTENSION::__from_string__< __type >( xelement->m_Value ) :
-               STRING_EXTENSION::__from_string__< __type >( std::string() );
+               __from_string__< __type >( xelement->m_Value ) :
+               __from_string__< __type >( std::string() );
 }
 
 template std::string XElement::get_value( std::string _Name ) const;
@@ -237,7 +472,7 @@ void XElement::set_value( __type _Value, std::string _Name )
 {
     if( _Name == std::string() || _Name == get_name() )
     {
-        m_Value = STRING_EXTENSION::__to_string__<__type>( _Value );
+        m_Value = __to_string__<__type>( _Value );
     }
     else
     {
