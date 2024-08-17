@@ -1,4 +1,5 @@
 #include "XElement.h"
+#include "Utils.h"
 
 // FileSymbolProvider
 class FileSymbolProvider : public ISymbolProvider

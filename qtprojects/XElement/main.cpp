@@ -1,8 +1,7 @@
 // backend
 #include "XElement.h"
 
-// Qt
-#include <QDebug>
+#include "iostream"
 
 int main()
 {

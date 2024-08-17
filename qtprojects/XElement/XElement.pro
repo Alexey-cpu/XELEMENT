@@ -1,4 +1,4 @@
-QT = core
+CONFIG -= qt
 CONFIG += c++20
 
 # You can make your code fail to compile if it uses deprecated APIs.
