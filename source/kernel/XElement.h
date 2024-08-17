@@ -1,15 +1,20 @@
 #ifndef XELEMENT_H
 #define XELEMENT_H
 
+// custom includes
+#include "Utils.h"
+
 // standart includes
 #include <memory>
 #include <map>
+#include <list>
+#include <functional>
 
-// custom includes
-#include "Utils.h"
-using namespace STRING_EXTENSION;
+#if __cplusplus >= 202002L
+#include <filesystem>
+#endif
 
-// symbol providers
+// ISymbolProvider
 class ISymbolProvider
 {
 public:
@@ -23,77 +28,6 @@ public:
     virtual char symbol() = 0;
     virtual bool valid() = 0;
     virtual bool end() = 0;
-};
-
-class FileSymbolProvider : public ISymbolProvider
-{
-protected:
-
-    std::ifstream m_File;
-
-public:
-
-    // constructors
-    FileSymbolProvider( std::string _Path )
-    {
-        m_File.open( _Path );
-    }
-
-    // virtual destructor
-    virtual ~FileSymbolProvider()
-    {
-        m_File.close();
-    }
-
-    // virtual methods override
-    virtual bool valid() override
-    {
-        return m_File.is_open();
-    }
-
-    virtual bool end() override
-    {
-        return m_File.eof();
-    }
-
-    virtual char symbol() override
-    {
-        char output;
-        m_File.get(output);
-        return output;
-    }
-};
-
-class StringSymbolProvider : public ISymbolProvider
-{
-protected:
-
-    const std::string m_String  = std::string();
-    size_t m_Counter = 0;
-
-public:
-
-    // constructors
-    StringSymbolProvider( std::string _String ) : m_String(_String){}
-
-    // virtual destructor
-    virtual ~StringSymbolProvider(){}
-
-    // virtual methods override
-    virtual bool valid() override
-    {
-        return !m_String.empty();
-    }
-
-    virtual bool end() override
-    {
-        return m_Counter >= m_String.size();
-    }
-
-    virtual char symbol() override
-    {
-        return m_String[m_Counter++];
-    }
 };
 
 // XML object
@@ -141,46 +75,16 @@ public:
     XElement* get_parent() const;
 
     template< typename __type >
-    __type get_value( std::string _Name = std::string() ) const
-    {
-        if( _Name == std::string() || _Name == this->get_name() )
-            return __from_string__< __type >( m_Value );
-
-        std::shared_ptr< XElement > xelement = find_element( _Name );
-        return xelement != nullptr ? __from_string__< __type >( xelement->m_Value ) : __from_string__< __type >( std::string() );
-    }
+    __type get_value( std::string _Name = std::string() ) const;
 
     // setters
+    template< typename __type >
+    void set_value( __type _Value, std::string _Name = std::string() );
     void set_name( std::string _Name );
 
-    template< typename __type >
-    void set_value( __type _Value, std::string _Name = std::string() )
-    {
-        if( _Name == std::string() || _Name == get_name() )
-        {
-            m_Value = __to_string__<__type>( _Value );
-        }
-        else
-        {
-            std::shared_ptr< XElement > xelement = find_element( _Name );
-
-            if( xelement != nullptr )
-            {
-                xelement->set_value<__type>( _Value );
-            }
-        }
-    }
-
     // predicates
-    bool has_element( std::string _Name )
-    {
-        return find_element( _Name ) != nullptr;
-    }
-
-    bool has_attribute( std::string _Name )
-    {
-        return m_Attributes.find(_Name) != m_Attributes.end();
-    }
+    bool has_element( std::string _Name );
+    bool has_attribute( std::string _Name );
 
     // public methods
     void add_element( std::shared_ptr< XElement > _Object );
@@ -219,10 +123,21 @@ public:
             std::string _Extention = "xml",
             std::string _Prolog    = "<?xml version=\"1.0\"?>\n<?mso-application progid=\"Excel.Sheet\"?>\n" ); // default prolog is MS Office Excel compatible
 
+#ifdef _GLIBCXX_FILESYSTEM
+
+    static std::shared_ptr< XElement > from_file( std::filesystem::path _Path );
+
+    static bool to_file(
+        std::shared_ptr< XElement > _Instance,
+        std::filesystem::path       _Path,
+        std::string                 _Prolog = "<?xml version=\"1.0\"?>\n<?mso-application progid=\"Excel.Sheet\"?>\n" );
+
+#endif
+
     static std::shared_ptr< XElement > Create(
             std::string _Name  = std::string(),
             std::string _Value = std::string(),
-            std::map< std::string, std::string > _Attributes = std::map< std::string, std::string >(),
+            std::map< std::string, std::string >     _Attributes    = std::map< std::string, std::string >(),
             std::list< std::shared_ptr< XElement > > _ChildElements = std::list< std::shared_ptr< XElement > >(),
             std::shared_ptr< XElement > _Parent = nullptr );
 };

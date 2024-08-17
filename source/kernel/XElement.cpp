@@ -1,6 +1,79 @@
 #include "XElement.h"
 
-// Tag parser
+// FileSymbolProvider
+class FileSymbolProvider : public ISymbolProvider
+{
+protected:
+
+    std::ifstream m_File;
+
+public:
+
+    // constructors
+    FileSymbolProvider( std::string _Path )
+    {
+        m_File.open( _Path );
+    }
+
+    // virtual destructor
+    virtual ~FileSymbolProvider()
+    {
+        m_File.close();
+    }
+
+    // virtual methods override
+    virtual bool valid() override
+    {
+        return m_File.is_open();
+    }
+
+    virtual bool end() override
+    {
+        return m_File.eof();
+    }
+
+    virtual char symbol() override
+    {
+        char output;
+        m_File.get(output);
+        return output;
+    }
+};
+
+// StringSymbolProvider
+class StringSymbolProvider : public ISymbolProvider
+{
+protected:
+
+    const std::string m_String  = std::string();
+    size_t m_Counter = 0;
+
+public:
+
+    // constructors
+    StringSymbolProvider( std::string _String ) : m_String(_String){}
+
+    // virtual destructor
+    virtual ~StringSymbolProvider(){}
+
+    // virtual methods override
+    virtual bool valid() override
+    {
+        return !m_String.empty();
+    }
+
+    virtual bool end() override
+    {
+        return m_Counter >= m_String.size();
+    }
+
+    virtual char symbol() override
+    {
+        return m_String[m_Counter++];
+    }
+};
+
+// XElement::XElementTagParser
 XElement::XElementTagParser::XElementTagParser()
 {
     m_Attribute.reserve(512);
@@ -45,7 +118,6 @@ void XElement::XElementTagParser::parse_element_attributes( XElement* _XElement,
 
     for( size_t i = 0 ; i < _Input.size() ; i++ )
     {
-        //if( trigger && _Input[i] != '<' && _Input[i] != '>' && _Input[i] != '/' && _Input[i] != '"' )
         if( trigger && _Input[i] != '<' && _Input[i] != '>' && _Input[i] != '"' )
         {
             m_Attribute += _Input[i];
@@ -62,7 +134,9 @@ void XElement::XElementTagParser::parse_element_attributes( XElement* _XElement,
         }
 
         if(counter < 2)
+        {
             continue;
+        }
 
         // get ready to parse attribute
         size_t j = 0;
@@ -71,13 +145,17 @@ void XElement::XElementTagParser::parse_element_attributes( XElement* _XElement,
         for( j = 0 ; j < m_Attribute.size() && m_Attribute[j] != '=' ; j++ )
         {
             if( m_Attribute[j] != ' ' )
+            {
                 m_Name.push_back( m_Attribute[j] );
+            }
         }
 
         // parse attribute value
         j++;
         for( ; j < m_Attribute.size() ; j++ )
+        {
             m_Value.push_back( m_Attribute[j] );
+        }
 
         _XElement->add_attribute( m_Name, m_Value );
 
@@ -126,9 +204,77 @@ XElement* XElement::get_parent() const
     return m_Parent;
 }
 
+template< typename __type > __type XElement::get_value( std::string _Name ) const
+{
+    if( _Name == std::string() || _Name == this->get_name() )
+    {
+        return STRING_EXTENSION::__from_string__< __type >( m_Value );
+    }
+
+    std::shared_ptr< XElement > xelement = find_element( _Name );
+
+    return xelement != nullptr ?
+               STRING_EXTENSION::__from_string__< __type >( xelement->m_Value ) :
+               STRING_EXTENSION::__from_string__< __type >( std::string() );
+}
+
+template std::string XElement::get_value( std::string _Name ) const;
+template short XElement::get_value( std::string _Name ) const;
+template unsigned short XElement::get_value( std::string _Name ) const;
+template int XElement::get_value( std::string _Name ) const;
+template unsigned int XElement::get_value( std::string _Name ) const;
+template long XElement::get_value( std::string _Name ) const;
+template long long XElement::get_value( std::string _Name ) const;
+template unsigned long XElement::get_value( std::string _Name ) const;
+template unsigned long long XElement::get_value( std::string _Name ) const;
+template float XElement::get_value( std::string _Name ) const;
+template double XElement::get_value( std::string _Name ) const;
+template bool XElement::get_value( std::string _Name ) const;
+
+template< typename __type >
+void XElement::set_value( __type _Value, std::string _Name )
+{
+    if( _Name == std::string() || _Name == get_name() )
+    {
+        m_Value = STRING_EXTENSION::__to_string__<__type>( _Value );
+    }
+    else
+    {
+        std::shared_ptr< XElement > xelement = find_element( _Name );
+
+        if( xelement != nullptr )
+        {
+            xelement->set_value<__type>( _Value );
+        }
+    }
+}
+
+template void XElement::set_value( std::string _Value, std::string _Name );
+template void XElement::set_value( short _Value, std::string _Name );
+template void XElement::set_value( unsigned short _Value, std::string _Name );
+template void XElement::set_value( int _Value, std::string _Name );
+template void XElement::set_value( unsigned int _Value, std::string _Name );
+template void XElement::set_value( long _Value, std::string _Name );
+template void XElement::set_value( long long _Value, std::string _Name );
+template void XElement::set_value( unsigned long _Value, std::string _Name );
+template void XElement::set_value( unsigned long long _Value, std::string _Name );
+template void XElement::set_value( float _Value, std::string _Name );
+template void XElement::set_value( double _Value, std::string _Name );
+template void XElement::set_value( bool _Value, std::string _Name );
+
 void XElement::set_name( std::string _Name )
 {
     m_Name = _Name;
+}
+
+bool XElement::has_element( std::string _Name )
+{
+    return find_element( _Name ) != nullptr;
+}
+
+bool XElement::has_attribute( std::string _Name )
+{
+    return m_Attributes.find(_Name) != m_Attributes.end();
 }
 
 void XElement::add_element( std::shared_ptr< XElement > _Object )
@@ -423,6 +569,29 @@ std::shared_ptr< XElement > XElement::from_file(
 {
     return from_file( _Directory + "/" + _Filename + '.' + _Extention );
 }
+
+#ifdef _GLIBCXX_FILESYSTEM
+
+std::shared_ptr< XElement > XElement::from_file( std::filesystem::path _Path )
+{
+    return from_file( _Path.string() );
+}
+
+bool XElement::to_file(
+    std::shared_ptr< XElement > _Instance,
+    std::filesystem::path       _Path,
+    std::string                 _Prolog )
+{
+    return XElement::to_file(
+        _Instance,
+        _Path.parent_path().string(),
+        _Path.filename().string(),
+        _Path.extension().string(),
+        _Prolog
+    );
+}
+
+#endif
 
 std::shared_ptr< XElement > XElement::from_string( std::string _String )
 {
