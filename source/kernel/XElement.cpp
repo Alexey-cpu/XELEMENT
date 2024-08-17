@@ -557,7 +557,6 @@ std::shared_ptr< XElement > XElement::read( std::shared_ptr< ISymbolProvider > _
     return root->size() > 1 ? root : *root->begin();
 }
 
-
 std::shared_ptr< XElement > XElement::from_file( std::string _Path )
 {
     return read( std::shared_ptr< ISymbolProvider >( new FileSymbolProvider( _Path ) ) );
