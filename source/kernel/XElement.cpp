@@ -1,7 +1,7 @@
 #include "XElement.h"
 #include <iostream>
-#include <sstream>
 #include <fstream>
+#include <filesystem>
 
 #ifndef STRINGIFY
 #define STRINGIFY(INPUT) #INPUT
@@ -275,6 +275,50 @@ public:
         return output;
     }
 };
+
+// FileSystemSymbolProvider
+#ifdef _GLIBCXX_FILESYSTEM
+
+class FileSystemSymbolProvider : public ISymbolProvider
+{
+protected:
+
+    std::ifstream m_File;
+
+public:
+
+    // constructors
+    FileSystemSymbolProvider( std::filesystem::path _Path )
+    {
+        m_File.open( _Path );
+    }
+
+    // virtual destructor
+    virtual ~FileSystemSymbolProvider()
+    {
+        m_File.close();
+    }
+
+    // virtual methods override
+    virtual bool valid() override
+    {
+        return m_File.is_open();
+    }
+
+    virtual bool end() override
+    {
+        return m_File.eof();
+    }
+
+    virtual char symbol() override
+    {
+        char output;
+        m_File.get(output);
+        return output;
+    }
+};
+
+#endif
 
 // StringSymbolProvider
 class StringSymbolProvider : public ISymbolProvider
@@ -809,21 +853,29 @@ std::shared_ptr< XElement > XElement::from_file(
 
 std::shared_ptr< XElement > XElement::from_file( std::filesystem::path _Path )
 {
-    return from_file( _Path.string() );
+    return read( std::shared_ptr<FileSystemSymbolProvider>( new FileSystemSymbolProvider( _Path ) ) );
 }
 
 bool XElement::to_file(
     std::shared_ptr< XElement > _Instance,
     std::filesystem::path       _Path,
     std::string                 _Prolog )
-{
-    return XElement::to_file(
-        _Instance,
-        _Path.parent_path().string(),
-        _Path.filename().string(),
-        _Path.extension().string(),
-        _Prolog
-    );
+{    
+    // open file
+    std::ofstream file;
+    file.open( _Path );
+
+    if( !file )
+    {
+        return false;
+    }
+
+    file.clear();
+    file << _Prolog; // write prolog first !!!
+    file << _Instance->to_string();
+    file.close();
+
+    return true;
 }
 
 #endif
