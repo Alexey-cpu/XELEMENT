@@ -63,18 +63,18 @@ public:
 
     // setters
     template< typename __type >
-    void set_value( __type, std::string = std::string() );
-    void set_name( std::string );
-    void set_prolog( std::string );
+    void set_value( __type, std::string _Value = std::string() );
+    void set_name( std::string _Value);
+    void set_prolog( std::string _Value);
 
     // predicates
-    bool has_element( std::string );
-    bool has_attribute( std::string );
+    bool has_element( std::string _Name);
+    bool has_attribute( std::string _Name);
 
     // public methods
     void add_element( std::shared_ptr< XElement > _Object );
     void add_attribute( std::string _Name, std::string _Value = std::string() );
-    void erase_element( std::function< bool( std::shared_ptr< XElement > ) > _Predicate );
+    void erase_element( std::function< bool( std::shared_ptr< XElement > ) > );
     void erase_element(std::string _Name);
     void erase_attribute(std::string _Name);
     void clear();
