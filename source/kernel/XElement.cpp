@@ -826,7 +826,7 @@ std::shared_ptr< XElement > XElement::read( std::shared_ptr< ISymbolProvider > _
                 ( tag[ tag.size() - 2 ] == '?' && tag[ tag.size() - 1 ] == '>' ) &&
                 current != nullptr ) // <?xml version="1.0"?>
             {
-                prolog.append( tag + "\n" );
+                prolog.append( tag );
             }
             else if(
                 tag[0] == '<' &&
