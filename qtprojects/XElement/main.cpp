@@ -1,7 +1,5 @@
 // backend
 #include "XElement.h"
-#include <fstream>
-#include <iostream>
 
 int xelement_test_1( std::string _Path, std::string _Filename )
 {

@@ -75,3 +75,5 @@ CMakeLists.txt.user*
 *.dll
 *.exe
 
+/tests/*
+/tests/Test-1.xml
