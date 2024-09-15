@@ -495,6 +495,54 @@ XElement::~XElement()
     m_Elements.clear();
 }
 
+std::shared_ptr< XElement > XElement::find_element_recursuve(
+    const XElement* _Object,
+    std::function< bool( std::shared_ptr< XElement > ) > _Predicate )
+{
+    if( _Predicate == nullptr || _Object == nullptr || _Object->empty() )
+        return nullptr;
+
+    for( auto& object : _Object->m_Elements )
+    {
+        if( object == nullptr )
+            continue;
+
+        if( _Predicate( object ) )
+            return object;
+
+        if( object->empty() )
+            continue;
+
+        auto candidate = XElement::find_element_recursuve(object.get(), _Predicate);
+
+        if( candidate != nullptr )
+            return candidate;
+    }
+
+    return nullptr;
+}
+
+void XElement::find_children_recursuve(
+    const XElement*                                      _Object,
+    std::function< bool( std::shared_ptr< XElement > ) > _Predicate,
+    std::list< std::shared_ptr< XElement > >&            _Output )
+{
+    if( _Predicate == nullptr || _Object == nullptr || _Object->empty() )
+        return;
+
+    for( auto& object : _Object->m_Elements )
+    {
+        if( object == nullptr )
+            continue;
+
+        if( _Predicate( object ) )
+            _Output.push_back( object );
+
+        if( !object->empty() )
+            XElement::find_children_recursuve(object.get(), _Predicate, _Output);
+    }
+}
+
 std::string XElement::get_name() const
 {
     return m_Name;
@@ -712,6 +760,30 @@ std::shared_ptr< XElement > XElement::find_element( std::string _Name ) const
             );
 }
 
+
+std::shared_ptr< XElement > XElement::find_element_recursuve( std::string _Name ) const
+{
+    return XElement::find_element_recursuve(
+        this,
+        [&_Name]( std::shared_ptr< XElement > _Object )->bool
+        {
+            return _Object != nullptr && _Object->get_name() == _Name;
+        }
+    );
+}
+
+std::shared_ptr< XElement > XElement::find_element_recursuve( std::function< bool(std::shared_ptr< XElement >) > _Predicate ) const
+{
+    return XElement::find_element_recursuve( this, _Predicate );
+}
+
+std::list< std::shared_ptr< XElement > > XElement::find_elements_recursuve( std::function< bool(std::shared_ptr< XElement >) > _Predicate ) const
+{
+    std::list< std::shared_ptr< XElement > > output;
+    XElement::find_children_recursuve( this, _Predicate, output );
+    return output;
+}
+
 std::string XElement::find_attribute( std::string _Name ) const
 {
     return m_Attributes.find(_Name) == m_Attributes.end() ?
@@ -719,12 +791,12 @@ std::string XElement::find_attribute( std::string _Name ) const
                m_Attributes.find(_Name)->second;
 }
 
-size_t XElement::size()
+size_t XElement::size() const
 {
     return m_Elements.size();
 }
 
-bool XElement::empty()
+bool XElement::empty() const
 {
     return m_Elements.empty();
 }
@@ -739,14 +811,50 @@ typeof( XElement::m_Elements.begin() ) XElement::end()
     return m_Elements.end();
 }
 
-std::string XElement::to_string( std::string _Prefix, std::string _Postfix ) const
+std::string XElement::to_string(
+    std::string _Prefix,
+    std::string _Postfix,
+    FORMAT      _Format ) const
 {
-    // serialize attributes and value
+    // serialize in compact format
+    if( _Format == FORMAT::COMPACT )
+    {
+        std::string output = "<" + get_name();
+
+        for( auto i = m_Attributes.begin() ; i != m_Attributes.end() ; i++ )
+        {
+            std::string name =
+                ( i->second[0] == '"' && i->second[ i->second.size()-1 ] == '"' ) ?
+                    i->second :
+                        "\"" + i->second + "\"";
+
+            output.append( " " + i->first + "=" + name + ( i == prev(m_Attributes.end()) ? "" : " " ) );
+        }
+
+        output.append(">" + m_Value);
+
+        if( m_Elements.empty() )
+            return output.append( "</" + get_name() + ">" );
+
+        for( auto& element : m_Elements )
+        {
+            if( element != nullptr )
+                output.append( element->to_string( std::string(),  std::string(), _Format ) );
+        }
+
+        return output.append( "</" + get_name() + ">" );
+    }
+
+    // serialize in beautiful
     std::string output = _Prefix + "<" + get_name();
 
     for( auto i = m_Attributes.begin() ; i != m_Attributes.end() ; i++ )
     {
-        std::string name = ( i->second[0] == '"' && i->second[ i->second.size()-1 ] == '"' ) ? i->second : "\"" + i->second + "\"";
+        std::string name =
+            ( i->second[0] == '"' && i->second[ i->second.size()-1 ] == '"' ) ?
+                i->second :
+                    "\"" + i->second + "\"";
+
         output.append( " " + i->first + "=" + name + ( i == prev(m_Attributes.end()) ? "" : " " ) );
     }
 
@@ -755,16 +863,12 @@ std::string XElement::to_string( std::string _Prefix, std::string _Postfix ) con
     if( m_Elements.empty() )
         return output.append( "</" + get_name() + ">" + _Postfix );
 
-    // serialize child elements
     output.append("\n");
 
-    for( auto i = m_Elements.begin() ; i != m_Elements.end() ; i++ )
+    for( auto& element : m_Elements )
     {
-        std::shared_ptr< XElement > xelement =
-            std::dynamic_pointer_cast<XElement>( *i );
-
-        if( xelement != nullptr )
-            output.append( xelement->to_string( _Prefix + "\t",  "\n" ) );
+        if( element != nullptr )
+            output.append( element->to_string( _Prefix + "\t",  "\n", _Format ) );
     }
 
     return output.append( _Prefix + "</" + get_name() + ">" + _Postfix );
@@ -910,7 +1014,8 @@ std::shared_ptr< XElement > XElement::from_string( std::string _String )
 
 bool XElement::to_file(
         std::shared_ptr< XElement > _Instance,
-        std::string                 _Path )
+        std::string                 _Path,
+        FORMAT                      _Format )
 {
     if(_Instance == nullptr)
         return false;
@@ -924,7 +1029,7 @@ bool XElement::to_file(
 
     file.clear();
     file << _Instance->get_prolog(); // write prolog first !!!
-    file << _Instance->to_string();
+    file << _Instance->to_string( std::string(), std::string(), _Format );
     file.close();
 
     return true;
@@ -934,7 +1039,8 @@ bool XElement::to_file(
 
 bool XElement::to_file(
     std::shared_ptr< XElement > _Instance,
-    std::filesystem::path       _Path )
+    std::filesystem::path       _Path,
+    FORMAT                      _Format )
 {
     // open file
     std::ofstream file;
@@ -945,7 +1051,7 @@ bool XElement::to_file(
 
     file.clear();
     file << _Instance->get_prolog(); // write prolog first !!!
-    file << _Instance->to_string();
+    file << _Instance->to_string( std::string(), std::string(), _Format );
     file.close();
 
     return true;

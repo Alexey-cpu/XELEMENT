@@ -31,7 +31,8 @@ int xelement_example_0()
                         "CHILD-1-1",
                         "CHILD-1-1",
                         {
-                              {"DESCRIPTION", "THIS IS CHILD-1-1"}
+                              {"DESCRIPTION", "THIS IS CHILD-1-1"},
+                              { "ONE"  , "1" },
                         },
                         {
                         }
@@ -65,6 +66,25 @@ int xelement_example_0()
     root->add_attribute( "TWO", "1" );
     root->add_attribute( "THREE", "1" );
 
+    auto objects =
+    root->find_elements_recursuve(
+        []( std::shared_ptr<XElement> _Object )->bool
+        {
+            return _Object != nullptr && _Object->has_attribute( "ONE" );
+        } );
+
+    auto element =
+        root->find_element_recursuve( "CHILD-1-1" );
+
+    std::cout << "found element: \n";
+    if( element != nullptr )
+        std::cout << element->to_string() << "\n\n";
+
+
+    std::cout << "elements having attribute ONE: \n";
+    for( auto& object : objects )
+        std::cout << object->to_string() << "\n\n";
+
     // print the object
     std::cout << root->to_string();
 
@@ -80,7 +100,8 @@ int xelement_example_1( std::string _Path, std::string _Filename )
     // write back to file
     XElement::to_file(
         xelement,
-        std::filesystem::path( _Path + "/" + std::filesystem::path( _Path + "/" + _Filename ).stem().string() + "_copy" + ".xml" ) );
+        std::filesystem::path( _Path + "/" + std::filesystem::path( _Path + "/" + _Filename ).stem().string() + "_copy" + ".xml" ),
+        XElement::FORMAT::COMPACT );
 
     return 0;
 }

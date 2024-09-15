@@ -48,7 +48,22 @@ protected:
                         _Attributes = std::map< std::string, std::string >(),
             std::string _Prolog     = std::string() );
 
+    static std::shared_ptr< XElement > find_element_recursuve(
+        const XElement* _Object,
+        std::function< bool( std::shared_ptr< XElement > ) > _Predicate );
+
+    static void find_children_recursuve(
+        const XElement*                                      _Object,
+        std::function< bool( std::shared_ptr< XElement > ) > _Predicate,
+        std::list< std::shared_ptr< XElement > >&            _Output );
+
 public:
+
+    enum FORMAT
+    {
+        COMPACT,
+        BEAUTIFUL
+    };
 
     // destructor
     ~XElement();
@@ -80,14 +95,18 @@ public:
     void clear();
     std::shared_ptr< XElement > find_element( std::function< bool(std::shared_ptr< XElement >) > _Predicate ) const;
     std::shared_ptr< XElement > find_element( std::string _Name ) const;
+    std::shared_ptr< XElement > find_element_recursuve( std::string _Name ) const;
+    std::shared_ptr< XElement > find_element_recursuve( std::function< bool(std::shared_ptr< XElement >) > _Predicate ) const;
+    std::list< std::shared_ptr< XElement > > find_elements_recursuve( std::function< bool(std::shared_ptr< XElement >) > _Predicate ) const;
     std::string find_attribute( std::string _Name ) const;
     typeof( m_Elements.begin() ) begin();
     typeof( m_Elements.begin() ) end();
-    size_t size();
-    bool empty();
+    size_t size() const;
+    bool empty() const;
     std::string to_string(
-            std::string _Prefix = std::string(),
-            std::string _Postfix = std::string() ) const;
+        std::string _Prefix  = std::string(),
+        std::string _Postfix = std::string(),
+        FORMAT      _Format  = FORMAT::BEAUTIFUL ) const;
 
     // static API
     static std::shared_ptr< XElement > read( std::shared_ptr< ISymbolProvider > _SymbolProvider );
@@ -104,13 +123,15 @@ public:
 
     static bool to_file(
             std::shared_ptr< XElement > _Instance,
-            std::string                 _Path );
+            std::string                 _Path,
+            FORMAT                      _Format = FORMAT::BEAUTIFUL );
 
 #ifdef _GLIBCXX_FILESYSTEM
 
     static bool to_file(
         std::shared_ptr< XElement > _Instance,
-        std::filesystem::path       _Path );
+        std::filesystem::path       _Path,
+        FORMAT                      _Format = FORMAT::BEAUTIFUL );
 
 #endif
 
