@@ -577,27 +577,31 @@ void XElement::set_prolog( std::string _Value )
 {
     // parse prolog
     std::string value;
+    bool read = false;
 
     for( size_t i = 0 ; i < _Value.size() ; i++ )
     {
-        if( _Value[i] == '\n' )
+        if( _Value[i] == '<' )
+            read = true;
+
+        if( read )
+            value += _Value[i];
+
+        if( _Value[i] == '>' )
         {
-             // check prolog
+            // check prolog
             if(
                 value.size() >= 4 &&
                 ( value[0] == '<' && value[1] == '?' ) &&
                 ( value[ value.size() - 2 ] == '?' && value[ value.size() - 1 ] == '>' ) )
             {
                 value.clear();
+                read = false;
             }
             else
             {
                 return;
             }
-        }
-        else
-        {
-            value += _Value[i];
         }
     }
 
