@@ -575,11 +575,32 @@ void XElement::set_name( std::string _Name )
 
 void XElement::set_prolog( std::string _Value )
 {
-    // TODO: this is the bug !!!
-    //if(
-    //    _Value.size() >= 4 &&
-    //    ( _Value[0] == '<' && _Value[1] == '?' ) &&
-    //    ( _Value[ _Value.size() - 2 ] == '?' && _Value[ _Value.size() - 1 ] == '>' ) )
+    // parse prolog
+    std::string value;
+
+    for( size_t i = 0 ; i < _Value.size() ; i++ )
+    {
+        if( _Value[i] == '\n' )
+        {
+             // check prolog
+            if(
+                value.size() >= 4 &&
+                ( value[0] == '<' && value[1] == '?' ) &&
+                ( value[ value.size() - 2 ] == '?' && value[ value.size() - 1 ] == '>' ) )
+            {
+                value.clear();
+            }
+            else
+            {
+                return;
+            }
+        }
+        else
+        {
+            value += _Value[i];
+        }
+    }
+
     m_Prolog = _Value;
 }
 
