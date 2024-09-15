@@ -770,9 +770,7 @@ std::shared_ptr< XElement > XElement::read( std::shared_ptr< ISymbolProvider > _
 {
     if( _SymbolProvider == nullptr ||
             !_SymbolProvider->valid() )
-    {
         return nullptr;
-    }
 
     // auxiliary variables
     char input;
