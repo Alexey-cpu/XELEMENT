@@ -1,27 +1,25 @@
 // backend
 #include "XElement.h"
 
-#include "iostream"
+int xelement_test_1( std::string _Path, std::string _Filename )
+{
+    // read XML file
+    std::shared_ptr<XElement> xelement =
+        XElement::from_file( _Path + "/" + _Filename );
+
+    // write back to file
+    XElement::to_file(
+        xelement,
+        std::filesystem::path( _Path + "/" + std::filesystem::path( _Path + "/" + _Filename ).stem().string() + "_copy" + ".xml" ) );
+
+    return 0;
+}
 
 int main()
 {
-    std::string directory = "C:/Qt_projects/XELEMENT/tests";
-    std::string filename  = "MSExcel";
+    std::string path = "C:/Qt_Projects/XELEMENT/tests";
 
-    std::cout << "directory: " << directory << "\n";
-    std::cout << "filename : " << filename  << "\n";
-
-    std::shared_ptr<XElement> xelement = XElement::from_file( directory, filename );
-
-    if( xelement != nullptr )
-    {
-        std::cout << "document has been read !!! \n\n";
-        std::cout << xelement->to_string() << "\n";
-    }
-
-    XElement::to_file( xelement, directory, "MSExcelCopy" );
-
-    //std::cout << "<?xml version=\"1.0\"?>\n<?mso-application progid=\"Excel.Sheet\"?>\n";
+    xelement_test_1(path, "Test-1.xml");
 
     return 0;
 }

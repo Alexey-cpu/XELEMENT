@@ -31,34 +31,22 @@ class XElement final
 protected:
 
     // info
-    std::string                                   m_Name   = std::string();
-    std::string                                   m_Value  = std::string();
-    XElement*                                     m_Parent = nullptr;
-    std::list< std::shared_ptr< XElement > >      m_Elements;
-    mutable std::map< std::string, std::string >  m_Attributes;
+    std::string                              m_Name   = std::string();
+    std::string                              m_Value  = std::string();
+    XElement*                                m_Parent = nullptr;
+    std::list< std::shared_ptr< XElement > > m_Elements;
+    std::map< std::string, std::string >     m_Attributes = std::map< std::string, std::string >();
+    std::string                              m_Prolog     = "<?xml version=\"1.0\"?>\n<?mso-application progid=\"Excel.Sheet\"?>\n";
 
     // constructors
     XElement(
             std::string _Name = std::string(),
             std::string _Value = std::string(),
-            std::map< std::string, std::string > _Attributes = std::map< std::string, std::string >() );
-
-    // service methods
-    static bool check_symbol( char& _Input );
-
-    // nested types
-    class XElementTagParser
-    {
-        std::string m_Attribute;
-        std::string m_Name;
-        std::string m_Value;
-
-    public:
-        XElementTagParser();
-        ~XElementTagParser();
-        std::string parse_element_name(std::string& _Input);
-        void parse_element_attributes( XElement* _XElement, std::string& _Input );
-    };
+            std::map<
+            std::string,  // name
+            std::string > // value
+                        _Attributes = std::map< std::string, std::string >(),
+            std::string _Prolog     = std::string() );
 
 public:
 
@@ -67,24 +55,26 @@ public:
 
     // getters
     std::string get_name() const;
-    XElement* get_parent() const;
+    std::string get_prolog() const;
+    XElement*   get_parent() const;
 
     template< typename __type >
     __type get_value( std::string _Name = std::string() ) const;
 
     // setters
     template< typename __type >
-    void set_value( __type _Value, std::string _Name = std::string() );
-    void set_name( std::string _Name );
+    void set_value( __type, std::string _Value = std::string() );
+    void set_name( std::string _Value);
+    void set_prolog( std::string _Value);
 
     // predicates
-    bool has_element( std::string _Name );
-    bool has_attribute( std::string _Name );
+    bool has_element( std::string _Name);
+    bool has_attribute( std::string _Name);
 
     // public methods
     void add_element( std::shared_ptr< XElement > _Object );
     void add_attribute( std::string _Name, std::string _Value = std::string() );
-    void erase_element( std::function< bool( std::shared_ptr< XElement > ) > _Predicate );
+    void erase_element( std::function< bool( std::shared_ptr< XElement > ) > );
     void erase_element(std::string _Name);
     void erase_attribute(std::string _Name);
     void clear();
@@ -106,35 +96,30 @@ public:
 
     static std::shared_ptr< XElement > from_file( std::string _Path );
 
-    static std::shared_ptr< XElement > from_file(
-            std::string _Directory,
-            std::string _Filename,
-            std::string _Extention = "xml" );
-
-    static bool to_file(
-            std::shared_ptr< XElement > _Instance,
-            std::string _Directory,
-            std::string _Filename,
-            std::string _Extention = "xml",
-            std::string _Prolog    = "<?xml version=\"1.0\"?>\n<?mso-application progid=\"Excel.Sheet\"?>\n" ); // default prolog is MS Office Excel compatible
-
-#ifdef _GLIBCXX_FILESYSTEM
+    #ifdef _GLIBCXX_FILESYSTEM
 
     static std::shared_ptr< XElement > from_file( std::filesystem::path _Path );
 
+    #endif
+
+    static bool to_file(
+            std::shared_ptr< XElement > _Instance,
+            std::string                 _Path );
+
+#ifdef _GLIBCXX_FILESYSTEM
+
     static bool to_file(
         std::shared_ptr< XElement > _Instance,
-        std::filesystem::path       _Path,
-        std::string                 _Prolog = "<?xml version=\"1.0\"?>\n<?mso-application progid=\"Excel.Sheet\"?>\n" );
+        std::filesystem::path       _Path );
 
 #endif
 
     static std::shared_ptr< XElement > Create(
-            std::string _Name  = std::string(),
-            std::string _Value = std::string(),
+            std::string                              _Name          = std::string(),
+            std::string                              _Value         = std::string(),
             std::map< std::string, std::string >     _Attributes    = std::map< std::string, std::string >(),
             std::list< std::shared_ptr< XElement > > _ChildElements = std::list< std::shared_ptr< XElement > >(),
-            std::shared_ptr< XElement > _Parent = nullptr );
+            std::shared_ptr< XElement >              _Parent        = nullptr );
 };
 
 // XML serialization interface
