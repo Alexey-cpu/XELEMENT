@@ -354,7 +354,6 @@ public:
 };
 
 // XElement::XElementTagParser
-// nested types
 class XElementTagParser
 {
     std::string m_Attribute;
@@ -688,13 +687,7 @@ void XElement::erase_element( std::function< bool( std::shared_ptr< XElement >) 
     if( _Predicate == nullptr )
         return;
 
-    auto iterator =
-    std::find_if
-            (
-                m_Elements.begin(),
-                m_Elements.end(),
-                _Predicate
-            );
+    auto iterator = std::find_if( m_Elements.begin(), m_Elements.end(), _Predicate );
 
     if( iterator == m_Elements.end() )
         return;
@@ -705,13 +698,12 @@ void XElement::erase_element( std::function< bool( std::shared_ptr< XElement >) 
 
 void XElement::erase_element( std::string _Name )
 {
-    this->erase_element
-            (
-                [&_Name]( std::shared_ptr< XElement > _Element)
-                {
-                    return _Element != nullptr && _Element->get_name() == _Name;
-                }
-            );
+    this->erase_element(
+        [&_Name]( std::shared_ptr< XElement > _Element)
+        {
+            return _Element != nullptr && _Element->get_name() == _Name;
+        }
+    );
 }
 
 void XElement::add_attribute( std::string _Name, std::string _Value )
@@ -737,27 +729,19 @@ std::shared_ptr< XElement > XElement::find_element( std::function< bool( std::sh
     if( _Predicate == nullptr )
         return nullptr;
 
-    auto iterator =
-    std::find_if
-            (
-                m_Elements.begin(),
-                m_Elements.end(),
-                _Predicate
-            );
+    auto iterator = std::find_if( m_Elements.begin(), m_Elements.end(), _Predicate );
 
     return iterator != m_Elements.end() ? std::dynamic_pointer_cast<XElement>( *iterator ) : nullptr;
 }
 
 std::shared_ptr< XElement > XElement::find_element( std::string _Name ) const
 {
-    return
-    this->find_element
-            (
-                [&_Name]( std::shared_ptr< XElement > _Element)
-                {
-                    return _Element != nullptr && _Element->get_name() == _Name;
-                }
-            );
+    return this->find_element(
+        [&_Name]( std::shared_ptr< XElement > _Element)
+        {
+            return _Element != nullptr && _Element->get_name() == _Name;
+        }
+    );
 }
 
 
@@ -786,9 +770,9 @@ std::list< std::shared_ptr< XElement > > XElement::find_elements_recursuve( std:
 
 std::string XElement::find_attribute( std::string _Name ) const
 {
-    return m_Attributes.find(_Name) == m_Attributes.end() ?
-               std::string() :
-               m_Attributes.find(_Name)->second;
+    auto attribute = m_Attributes.find(_Name);
+
+    return attribute == m_Attributes.end() ? std::string() : attribute->second;
 }
 
 size_t XElement::size() const
