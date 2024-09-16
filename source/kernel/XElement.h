@@ -31,12 +31,12 @@ class XElement final
 protected:
 
     // info
-    std::string                              m_Name   = std::string();
-    std::string                              m_Value  = std::string();
-    XElement*                                m_Parent = nullptr;
-    std::list< std::shared_ptr< XElement > > m_Elements;
+    std::string                              m_Name       = std::string();
+    std::string                              m_Value      = std::string();
+    XElement*                                m_Parent     = nullptr;
+    std::list< std::shared_ptr< XElement > > m_Elements   = std::list< std::shared_ptr< XElement > >();
     std::map< std::string, std::string >     m_Attributes = std::map< std::string, std::string >();
-    std::string                              m_Prolog     = "<?xml version=\"1.0\"?>\n<?mso-application progid=\"Excel.Sheet\"?>\n";
+    std::string                              m_Prolog     = std::string();
 
     // constructors
     XElement(
@@ -46,7 +46,7 @@ protected:
             std::string,  // name
             std::string > // value
                         _Attributes = std::map< std::string, std::string >(),
-            std::string _Prolog     = std::string() );
+            std::string _Prolog     = "<?xml version=\"1.0\"?>\n<?mso-application progid=\"Excel.Sheet\"?>\n" );
 
     static std::shared_ptr< XElement > find_element_recursuve(
         const XElement* _Object,
