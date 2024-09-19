@@ -4,7 +4,7 @@
 
 **XELEMENT** is C++ library for manipulating with XML files.
 
-The library is self contained and stand-alone, all you need is to simply copy the needed **.h** and **.cpp** files into your project to get started. The library is very compact has not dependencies and provides basic functions to work with XML files.
+The library is self contained and stand-alone, all you need is to simply copy the needed **.h** and **.cpp** files into your project to get started. The library is very compact has not dependencies and provides basic functions to work with XML files. The library is aimed to be safe and easy to use rather than efficient that's why if you need to work with XML right here and right now and your XML files are not larger than 500 Mb this package is for you.
 
 ## Availability
 
