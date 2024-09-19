@@ -141,6 +141,8 @@ public:
             std::map< std::string, std::string >     _Attributes    = std::map< std::string, std::string >(),
             std::list< std::shared_ptr< XElement > > _ChildElements = std::list< std::shared_ptr< XElement > >(),
             std::shared_ptr< XElement >              _Parent        = nullptr );
+
+    static std::shared_ptr< XElement > Clone(std::shared_ptr< XElement > _Element);
 };
 
 // XML serialization interface

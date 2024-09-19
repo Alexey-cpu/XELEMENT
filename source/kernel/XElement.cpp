@@ -1067,3 +1067,10 @@ std::shared_ptr< XElement > XElement::Create(
 
     return xelement;
 }
+
+std::shared_ptr< XElement > XElement::Clone(std::shared_ptr< XElement > _Element)
+{
+    return _Element != nullptr ?
+               XElement::from_string( _Element->to_string( std::string(), std::string(), FORMAT::COMPACT ) ) :
+               nullptr;
+}
