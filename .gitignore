@@ -77,3 +77,4 @@ CMakeLists.txt.user*
 
 /tests/*
 /tests/Test-1.xml
+build/
