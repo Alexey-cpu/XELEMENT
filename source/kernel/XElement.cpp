@@ -277,7 +277,7 @@ public:
 };
 
 // FileSystemSymbolProvider
-#ifdef _GLIBCXX_FILESYSTEM
+#if defined(_GLIBCXX_FILESYSTEM) || defined(_FILESYSTEM_)
 
 class FileSystemSymbolProvider : public ISymbolProvider
 {
@@ -785,12 +785,12 @@ bool XElement::empty() const
     return m_Elements.empty();
 }
 
-typeof( XElement::m_Elements.begin() ) XElement::begin()
+XElement::const_iterator XElement::begin()
 {
     return m_Elements.begin();
 }
 
-typeof( XElement::m_Elements.begin() ) XElement::end()
+XElement::const_iterator XElement::end()
 {
     return m_Elements.end();
 }
@@ -982,7 +982,7 @@ std::shared_ptr< XElement > XElement::from_file( std::string _Path )
     return read( std::shared_ptr< ISymbolProvider >( new FileSymbolProvider( _Path ) ) );
 }
 
-#ifdef _GLIBCXX_FILESYSTEM
+#if defined(_GLIBCXX_FILESYSTEM) || defined(_FILESYSTEM_)
 
 std::shared_ptr< XElement > XElement::from_file( std::filesystem::path _Path )
 {
@@ -1019,7 +1019,7 @@ bool XElement::to_file(
     return true;
 }
 
-#ifdef _GLIBCXX_FILESYSTEM
+#if defined(_GLIBCXX_FILESYSTEM) || defined(_FILESYSTEM_)
 
 bool XElement::to_file(
     std::shared_ptr< XElement > _Instance,

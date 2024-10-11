@@ -57,6 +57,8 @@ protected:
         std::function< bool( std::shared_ptr< XElement > ) > _Predicate,
         std::list< std::shared_ptr< XElement > >&            _Output );
 
+    typedef typename std::list< std::shared_ptr< XElement > >::const_iterator const_iterator;
+
 public:
 
     enum FORMAT
@@ -99,8 +101,8 @@ public:
     std::shared_ptr< XElement > find_element_recursuve( std::function< bool(std::shared_ptr< XElement >) > _Predicate ) const;
     std::list< std::shared_ptr< XElement > > find_elements_recursuve( std::function< bool(std::shared_ptr< XElement >) > _Predicate ) const;
     std::string find_attribute( std::string _Name ) const;
-    typeof( m_Elements.begin() ) begin();
-    typeof( m_Elements.begin() ) end();
+    const_iterator begin();
+    const_iterator end();
     size_t size() const;
     bool empty() const;
     std::string to_string(
@@ -115,7 +117,7 @@ public:
 
     static std::shared_ptr< XElement > from_file( std::string _Path );
 
-    #ifdef _GLIBCXX_FILESYSTEM
+    #if defined(_GLIBCXX_FILESYSTEM) || defined(_FILESYSTEM_) // MVSC compiler compatability issues fixed
 
     static std::shared_ptr< XElement > from_file( std::filesystem::path _Path );
 
@@ -126,7 +128,7 @@ public:
             std::string                 _Path,
             FORMAT                      _Format = FORMAT::BEAUTIFUL );
 
-#ifdef _GLIBCXX_FILESYSTEM
+#if defined(_GLIBCXX_FILESYSTEM) || defined(_FILESYSTEM_) // MVSC compiler compatability issues fixed
 
     static bool to_file(
         std::shared_ptr< XElement > _Instance,
