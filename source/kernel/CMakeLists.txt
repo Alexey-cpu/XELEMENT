@@ -29,3 +29,8 @@ endif()
 add_library(XElement "XElement.h" "XElement.cpp" )
 add_library(XElement::XElement ALIAS XElement)
 target_include_directories(XElement PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+include(GNUInstallDirs)
+install(TARGETS XElement
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
