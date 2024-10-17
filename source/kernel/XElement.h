@@ -28,38 +28,11 @@ public:
 // XML object
 class XElement final
 {
-protected:
-
-    // info
-    std::string                              m_Name       = std::string();
-    std::string                              m_Value      = std::string();
-    XElement*                                m_Parent     = nullptr;
-    std::list< std::shared_ptr< XElement > > m_Elements   = std::list< std::shared_ptr< XElement > >();
-    std::map< std::string, std::string >     m_Attributes = std::map< std::string, std::string >();
-    std::string                              m_Prolog     = std::string();
-
-    // constructors
-    XElement(
-            std::string _Name = std::string(),
-            std::string _Value = std::string(),
-            std::map<
-            std::string,  // name
-            std::string > // value
-                        _Attributes = std::map< std::string, std::string >(),
-            std::string _Prolog     = "<?xml version=\"1.0\"?>\n<?mso-application progid=\"Excel.Sheet\"?>\n" );
-
-    static std::shared_ptr< XElement > find_element_recursuve(
-        const XElement* _Object,
-        std::function< bool( std::shared_ptr< XElement > ) > _Predicate );
-
-    static void find_children_recursuve(
-        const XElement*                                      _Object,
-        std::function< bool( std::shared_ptr< XElement > ) > _Predicate,
-        std::list< std::shared_ptr< XElement > >&            _Output );
-
-    typedef typename std::list< std::shared_ptr< XElement > >::const_iterator const_iterator;
-
 public:
+
+    typedef typename std::list< std::shared_ptr< XElement > >::const_iterator elements_const_iterator;
+    typedef typename std::list< std::shared_ptr< XElement > > elements_container;
+    typedef typename std::map< std::string, std::string > attributes_container;
 
     enum FORMAT
     {
@@ -101,8 +74,8 @@ public:
     std::shared_ptr< XElement > find_element_recursuve( std::function< bool(std::shared_ptr< XElement >) > _Predicate ) const;
     std::list< std::shared_ptr< XElement > > find_elements_recursuve( std::function< bool(std::shared_ptr< XElement >) > _Predicate ) const;
     std::string find_attribute( std::string _Name ) const;
-    const_iterator begin();
-    const_iterator end();
+    elements_const_iterator begin();
+    elements_const_iterator end();
     size_t size() const;
     bool empty() const;
     std::string to_string(
@@ -138,13 +111,39 @@ public:
 #endif
 
     static std::shared_ptr< XElement > Create(
-            std::string                              _Name          = std::string(),
-            std::string                              _Value         = std::string(),
-            std::map< std::string, std::string >     _Attributes    = std::map< std::string, std::string >(),
-            std::list< std::shared_ptr< XElement > > _ChildElements = std::list< std::shared_ptr< XElement > >(),
-            std::shared_ptr< XElement >              _Parent        = nullptr );
+            std::string                 _Name          = std::string(),
+            std::string                 _Value         = std::string(),
+            attributes_container        _Attributes    = attributes_container(),
+            elements_container          _ChildElements = elements_container(),
+            std::shared_ptr< XElement > _Parent        = nullptr );
 
     static std::shared_ptr< XElement > Clone(std::shared_ptr< XElement > _Element);
+
+protected:
+
+    // info
+    std::string          m_Name       = std::string();
+    std::string          m_Value      = std::string();
+    XElement*            m_Parent     = nullptr;
+    elements_container   m_Elements   = elements_container();
+    attributes_container m_Attributes = attributes_container();
+    std::string          m_Prolog     = std::string();
+
+    // constructors
+    XElement(
+        std::string          _Name       = std::string(),
+        std::string          _Value      = std::string(),
+        attributes_container _Attributes = attributes_container(),
+        std::string          _Prolog     = "<?xml version=\"1.0\"?>\n<?mso-application progid=\"Excel.Sheet\"?>\n" );
+
+    static std::shared_ptr< XElement > find_element_recursuve(
+        const XElement* _Object,
+        std::function< bool( std::shared_ptr< XElement > ) > _Predicate );
+
+    static void find_children_recursuve(
+        const XElement*                                      _Object,
+        std::function< bool( std::shared_ptr< XElement > ) > _Predicate,
+        std::list< std::shared_ptr< XElement > >&            _Output );
 };
 
 // XML serialization interface

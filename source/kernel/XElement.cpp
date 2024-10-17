@@ -468,10 +468,10 @@ public:
 
 // XElement
 XElement::XElement(
-        std::string                          _Name,
-        std::string                          _Value,
-        std::map< std::string, std::string > _Attributes,
-        std::string                          _Prolog ) :
+        std::string          _Name,
+        std::string          _Value,
+        attributes_container _Attributes,
+        std::string          _Prolog ) :
     m_Name( _Name ),
     m_Value(_Value),
     m_Attributes(_Attributes),
@@ -785,12 +785,12 @@ bool XElement::empty() const
     return m_Elements.empty();
 }
 
-XElement::const_iterator XElement::begin()
+XElement::elements_const_iterator XElement::begin()
 {
     return m_Elements.begin();
 }
 
-XElement::const_iterator XElement::end()
+XElement::elements_const_iterator XElement::end()
 {
     return m_Elements.end();
 }
@@ -1044,11 +1044,11 @@ bool XElement::to_file(
 #endif
 
 std::shared_ptr< XElement > XElement::Create(
-        std::string                              _Name,
-        std::string                              _Value,
-        std::map< std::string, std::string >     _Attributes,
-        std::list< std::shared_ptr< XElement > > _ChildElements,
-        std::shared_ptr<XElement>                _Parent )
+        std::string               _Name,
+        std::string               _Value,
+        attributes_container      _Attributes,
+        elements_container        _ChildElements,
+        std::shared_ptr<XElement> _Parent )
 {
     std::shared_ptr< XElement > xelement =
             std::shared_ptr< XElement >( new XElement( _Name, _Value, _Attributes ) );
