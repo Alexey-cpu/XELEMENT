@@ -30,9 +30,9 @@ class XElement final
 {
 public:
 
-    typedef typename std::list< std::shared_ptr< XElement > >::const_iterator elements_const_iterator;
     typedef typename std::list< std::shared_ptr< XElement > > elements_container;
     typedef typename std::map< std::string, std::string > attributes_container;
+    typedef typename elements_container::const_iterator elements_const_iterator;
 
     enum FORMAT
     {
