@@ -30,15 +30,22 @@ class XElement final
 {
 public:
 
-    typedef typename std::list< std::shared_ptr< XElement > >::const_iterator elements_const_iterator;
     typedef typename std::list< std::shared_ptr< XElement > > elements_container;
     typedef typename std::map< std::string, std::string > attributes_container;
+    typedef typename elements_container::const_iterator elements_const_iterator;
 
     enum FORMAT
     {
         COMPACT,
         BEAUTIFUL
     };
+
+    // constructors
+    XElement(
+        std::string          _Name       = std::string(),
+        std::string          _Value      = std::string(),
+        attributes_container _Attributes = attributes_container(),
+        std::string          _Prolog     = "<?xml version=\"1.0\"?>\n<?mso-application progid=\"Excel.Sheet\"?>\n" );
 
     // destructor
     ~XElement();
@@ -128,13 +135,6 @@ protected:
     elements_container   m_Elements   = elements_container();
     attributes_container m_Attributes = attributes_container();
     std::string          m_Prolog     = std::string();
-
-    // constructors
-    XElement(
-        std::string          _Name       = std::string(),
-        std::string          _Value      = std::string(),
-        attributes_container _Attributes = attributes_container(),
-        std::string          _Prolog     = "<?xml version=\"1.0\"?>\n<?mso-application progid=\"Excel.Sheet\"?>\n" );
 
     static std::shared_ptr< XElement > find_element_recursuve(
         const XElement* _Object,

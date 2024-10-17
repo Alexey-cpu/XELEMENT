@@ -21,6 +21,7 @@ if(WIN32 AND CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
   add_definitions("/wd4068")
   add_definitions("/wd4834")
   add_definitions("/wd4334")
+  add_compile_options(/Ox)
 else()
 
     # This works only for Release build

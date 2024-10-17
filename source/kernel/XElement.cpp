@@ -241,38 +241,34 @@ class FileSymbolProvider : public ISymbolProvider
 {
 protected:
 
-    std::ifstream m_File;
+    std::string m_String;
+    size_t m_Counter = 0;
 
 public:
 
     // constructors
     FileSymbolProvider( std::string _Path )
     {
-        m_File.open( _Path );
+        std::getline(std::ifstream(_Path, std::ios::binary), m_String, '\0');
     }
 
     // virtual destructor
-    virtual ~FileSymbolProvider()
-    {
-        m_File.close();
-    }
+    virtual ~FileSymbolProvider(){}
 
     // virtual methods override
     virtual bool valid() override
     {
-        return m_File.is_open();
+        return !m_String.empty();
     }
 
     virtual bool end() override
     {
-        return m_File.eof();
+        return m_Counter >= m_String.size();
     }
 
     virtual char symbol() override
     {
-        char output;
-        m_File.get(output);
-        return output;
+        return m_String[m_Counter++];
     }
 };
 
@@ -283,38 +279,34 @@ class FileSystemSymbolProvider : public ISymbolProvider
 {
 protected:
 
-    std::ifstream m_File;
+    std::string m_String;
+    size_t m_Counter = 0;
 
 public:
 
     // constructors
     FileSystemSymbolProvider( std::filesystem::path _Path )
     {
-        m_File.open( _Path );
+        std::getline(std::ifstream(_Path, std::ios::binary), m_String, '\0');
     }
 
     // virtual destructor
-    virtual ~FileSystemSymbolProvider()
-    {
-        m_File.close();
-    }
+    virtual ~FileSystemSymbolProvider(){}
 
     // virtual methods override
     virtual bool valid() override
     {
-        return m_File.is_open();
+        return !m_String.empty();
     }
 
     virtual bool end() override
     {
-        return m_File.eof();
+        return m_Counter >= m_String.size();
     }
 
     virtual char symbol() override
     {
-        char output;
-        m_File.get(output);
-        return output;
+        return m_String[m_Counter++];
     }
 };
 
@@ -1042,7 +1034,7 @@ std::shared_ptr< XElement > XElement::Create(
         std::shared_ptr<XElement> _Parent )
 {
     std::shared_ptr< XElement > xelement =
-            std::shared_ptr< XElement >( new XElement( _Name, _Value, _Attributes ) );
+            std::make_shared< XElement >( _Name, _Value, _Attributes );
 
     if( _Parent != nullptr )
         _Parent->add_element( xelement );
