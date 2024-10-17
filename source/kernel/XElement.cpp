@@ -325,13 +325,13 @@ class StringSymbolProvider : public ISymbolProvider
 {
 protected:
 
-    const std::string m_String  = std::string();
+    const std::string& m_String;
     size_t m_Counter = 0;
 
 public:
 
     // constructors
-    StringSymbolProvider( std::string _String ) : m_String(_String){}
+    StringSymbolProvider( std::string& _String ) : m_String(_String){}
 
     // virtual destructor
     virtual ~StringSymbolProvider(){}
@@ -380,27 +380,7 @@ public:
 
     ~XElementTagParser(){}
 
-    std::string parse_element_name(std::string& _Input)
-    {
-        m_Name.clear();
-
-        for( size_t i = 0 ; i < _Input.size() ; i++ )
-        {
-            if( _Input[i] != ' ' && check_symbol( _Input[i] ) )
-            {
-                m_Name += _Input[i];
-            }
-
-            if( _Input[i] == ' ' )
-            {
-                return m_Name;
-            }
-        }
-
-        return m_Name;
-    }
-
-    void parse_element_attributes( XElement* _XElement, std::string& _Input )
+    void parse_element_name_attributes( XElement* _XElement, std::string& _Input )
     {
         if( _XElement == nullptr )
         {
@@ -411,10 +391,17 @@ public:
         m_Value.clear();
         m_Attribute.clear();
         int  counter = 0;
-        bool trigger = false;
+        bool trigger    = false;
+        bool nameParsed = false;
 
         for( size_t i = 0 ; i < _Input.size() ; i++ )
         {
+            // parse name
+            if( !nameParsed && _Input[i] != ' ' && check_symbol( _Input[i] ) )
+            {
+                m_Name.push_back( _Input[i] );
+            }
+
             if( trigger && _Input[i] != '<' && _Input[i] != '>' && _Input[i] != '"' )
             {
                 m_Attribute += _Input[i];
@@ -422,7 +409,13 @@ public:
 
             if( _Input[i] == ' ' || _Input[i] == '>' )
             {
+                if( !nameParsed )
+                {
+                    _XElement->set_name(m_Name);
+                }
+
                 trigger = true;
+                nameParsed = true;
             }
 
             if( _Input[i] == '"' )
@@ -437,6 +430,10 @@ public:
 
             // get ready to parse attribute
             size_t j = 0;
+
+            m_Name.clear();
+            m_Value.clear();
+            m_Attribute.clear();
 
             // parse attribute name
             for( j = 0 ; j < m_Attribute.size() && m_Attribute[j] != '=' ; j++ )
@@ -457,9 +454,6 @@ public:
             _XElement->add_attribute( m_Name, m_Value );
 
             // clear
-            m_Name.clear();
-            m_Value.clear();
-            m_Attribute.clear();
             counter = 0;
             trigger = false;
         }
@@ -921,8 +915,7 @@ std::shared_ptr< XElement > XElement::read( std::shared_ptr< ISymbolProvider > _
                 tag[1] == '/' &&
                 current != nullptr ) // <Data ATTRIBUTE=""></Data>
             {
-                current->set_name( parser.parse_element_name( tag ) );
-                parser.parse_element_attributes( current, tag );
+                parser.parse_element_name_attributes( current, tag );
                 current = current->get_parent();
             }
             else if (
@@ -933,8 +926,7 @@ std::shared_ptr< XElement > XElement::read( std::shared_ptr< ISymbolProvider > _
                 std::shared_ptr<XElement> element =
                     XElement::Create( STRINGIFY( XElement ) );
 
-                element->set_name( parser.parse_element_name( tag ) );
-                parser.parse_element_attributes( element.get(), tag );
+                parser.parse_element_name_attributes( element.get(), tag );
                 current->add_element( element );
             }
             else if( current != nullptr )
@@ -942,8 +934,7 @@ std::shared_ptr< XElement > XElement::read( std::shared_ptr< ISymbolProvider > _
                 std::shared_ptr<XElement> element =
                     XElement::Create( STRINGIFY( XElement ) );
 
-                element->set_name( parser.parse_element_name( tag ) );
-                parser.parse_element_attributes( element.get(), tag );
+                parser.parse_element_name_attributes( element.get(), tag );
                 current->add_element( element );
                 current = element.get();
             }
@@ -991,7 +982,7 @@ std::shared_ptr< XElement > XElement::from_file( std::filesystem::path _Path )
 
 #endif
 
-std::shared_ptr< XElement > XElement::from_string( std::string _String )
+std::shared_ptr< XElement > XElement::from_string( std::string& _String )
 {
     return read( std::shared_ptr< ISymbolProvider >( new StringSymbolProvider( _String ) ) );
 }
@@ -1070,7 +1061,10 @@ std::shared_ptr< XElement > XElement::Create(
 
 std::shared_ptr< XElement > XElement::Clone(std::shared_ptr< XElement > _Element)
 {
-    return _Element != nullptr ?
-               XElement::from_string( _Element->to_string( std::string(), std::string(), FORMAT::COMPACT ) ) :
-               nullptr;
+    if( _Element == nullptr )
+        return nullptr;
+
+    std::string xelement = _Element->to_string( std::string(), std::string(), FORMAT::COMPACT );
+
+    return XElement::from_string( xelement );
 }

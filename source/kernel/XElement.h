@@ -86,7 +86,7 @@ public:
     // static API
     static std::shared_ptr< XElement > read( std::shared_ptr< ISymbolProvider > _SymbolProvider );
 
-    static std::shared_ptr< XElement > from_string( std::string _Path );
+    static std::shared_ptr< XElement > from_string( std::string& _Path );
 
     static std::shared_ptr< XElement > from_file( std::string _Path );
 
